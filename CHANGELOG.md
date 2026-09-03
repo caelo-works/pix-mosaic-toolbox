@@ -11,10 +11,15 @@ maintained and distributed by Caelo Works with the author's agreement. See
 
 ## [Unreleased]
 
-First Caelo Works distribution of the script. No change to what the script does
-to an image: the entry point, the ten `mosaictoolbox/` modules and their
-arithmetic are Nicolas Godingen's 2.3.1, carried over unchanged. Everything here
-is packaging, testing and repository infrastructure.
+## [2.4.0] - 2026-09-03
+
+First Caelo Works distribution of the script. The image-processing engine — the
+common grid, reprojection, overlap, photometry, gradient model, join and
+per-channel assembly — is Nicolas Godingen's 2.3.1, carried over unchanged, so
+the pixels of an assembled mosaic are identical. The changes here are to the
+interface, the string catalogue, packaging, testing and repository
+infrastructure. Validated by hand on a real multi-filter mosaic: one common grid
+across every filter, with clean joins.
 
 ### Added
 
@@ -86,5 +91,5 @@ Interface, tooltips, console output and messages in English and French.
 Self-contained: no other mosaic script required. The astrometric grid derives
 from MosaicByCoordinates under the PixInsight Class Library License 2.0.
 
-[Unreleased]: https://github.com/caelo-works/pix-mosaic-toolbox/compare/v2.3.1...HEAD
-[2.3.1]: https://github.com/caelo-works/pix-mosaic-toolbox/releases/tag/v2.3.1
+[Unreleased]: https://github.com/caelo-works/pix-mosaic-toolbox/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/caelo-works/pix-mosaic-toolbox/releases/tag/v2.4.0

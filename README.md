@@ -1,4 +1,4 @@
-# Mosaic Toolbox 2.3.1 — PixInsight script
+# Mosaic Toolbox 2.4.0 — PixInsight script
 
 One script, one dialog, one run: several filters of a mosaic assembled onto a
 single common grid.
