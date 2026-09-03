@@ -73,7 +73,7 @@ unchanged.
 | PixInsight | ≥ 1.9.4 (Lockhart), Windows / macOS / Linux |
 | Input images | linear, plate solved, **gradient corrected**, one window per tile per filter |
 
-> **Correct the gradients before you assemble.** DBE, ABE, GraXpert, or
+> **Correct the gradients before you assemble.** YAGEx, DBE, ABE, GraXpert, or
 > NormalizeScaleGradient during preprocessing — whichever you use, run it on
 > every tile first.
 >
@@ -382,7 +382,7 @@ lot here.
 
 **A gradient across the finished mosaic.** The tiles were not gradient corrected
 before assembly, or they share a gradient the join cannot see. Correct each tile
-(DBE / ABE / GraXpert) and run again — correcting the assembled mosaic afterwards
+(YAGEx / DBE / ABE / GraXpert) and run again — correcting the assembled mosaic afterwards
 is harder, because the join has by then folded each tile's gradient into its
 neighbours.
 

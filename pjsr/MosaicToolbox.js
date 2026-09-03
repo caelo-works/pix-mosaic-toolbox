@@ -20,7 +20,7 @@
 //
 //   1. PixInsight >= 1.9.4 (Lockhart).
 //   2. All input images plate solved and linear.
-//   3. All input images ALREADY CORRECTED FOR GRADIENTS - DBE, ABE, GraXpert, or
+//   3. All input images ALREADY CORRECTED FOR GRADIENTS - YAGEx, DBE, ABE, GraXpert, or
 //      NormalizeScaleGradient during preprocessing. The join measures the
 //      difference between two tiles across their overlap and cancels it; it
 //      cannot remove a gradient the tiles have in common, and a strong

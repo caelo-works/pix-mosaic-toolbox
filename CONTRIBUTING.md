@@ -3,7 +3,7 @@
 ## Before anything else
 
 Input tiles must be **linear**, **plate solved** and **already corrected for
-gradients** (DBE, ABE, GraXpert, or NormalizeScaleGradient during
+gradients** (YAGEx, DBE, ABE, GraXpert, or NormalizeScaleGradient during
 preprocessing). The join measures the brightness *difference* between two tiles
 across their overlap and cancels it; it cannot remove a gradient the tiles
 share, and a strong uncorrected gradient in one tile is carried across the whole
