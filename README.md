@@ -97,7 +97,7 @@ Otherwise that is the whole list. The script uses only core PixInsight objects �
 Download `MosaicToolbox-<version>.zip` from the
 [releases](https://github.com/caelo-works/pix-mosaic-toolbox/releases) and unzip
 it over your PixInsight installation directory — its tree is laid out relative to
-that directory. It then appears under **Script → Mosaic → MosaicToolbox**.
+that directory. It then appears under **Script → CaeloWorks → Mosaic Toolbox**.
 
 ### From the source tree
 
@@ -118,7 +118,7 @@ MosaicToolbox/
 ```
 
 Then **Script → Feature Scripts… → Add**, select that folder, and it appears
-under **Script → Mosaic → MosaicToolbox**. (Or just **Script → Execute Script
+under **Script → CaeloWorks → Mosaic Toolbox**. (Or just **Script → Execute Script
 File…** and pick `MosaicToolbox.js`.) The menu icon in `pjsr/assets/` is
 optional when installing by hand.
 
@@ -131,7 +131,7 @@ folder together, with that folder name and the module filenames unchanged.
 
 1. Open every tile of every filter you want to assemble. All linear, all plate
    solved, all already corrected for gradients.
-2. **Script → Mosaic → MosaicToolbox**.
+2. **Script → CaeloWorks → Mosaic Toolbox**.
 3. Set **Language** if you want French. The dialog reopens in the chosen
    language with your table and settings intact, and the choice is remembered
    for next time. Everything the script prints to the console follows it too.

@@ -50,7 +50,7 @@
 "use strict";
 #engine v8
 
-#feature-id MosaicToolbox : Mosaic > MosaicToolbox
+#feature-id MosaicToolbox : CaeloWorks > Mosaic Toolbox
 
 #feature-icon @script_icons_dir/MosaicToolbox.svg
 

@@ -14,7 +14,7 @@
 #      <dest>/MosaicToolbox.js
 #
 # To make it appear in the Scripts menu instead: Script > Feature Scripts... ,
-# Add the <dest> directory, and it registers under Mosaic > MosaicToolbox.
+# Add the <dest> directory, and it registers under CaeloWorks > Mosaic Toolbox.
 set -euo pipefail
 
 NAME="MosaicToolbox"
