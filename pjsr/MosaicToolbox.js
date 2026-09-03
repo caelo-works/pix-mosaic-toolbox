@@ -112,55 +112,35 @@ function mtMain()
    data.restoreSettings();
    mtSetLanguage( data.language );
 
-   let scanned = false;
-   for ( ;; )
+   // The dialog retranslates itself in place on a language change, so there is
+   // no reopen loop: build it once, scan the workspace, and run.
+   let dialog = new MosaicToolboxDialog( data );
+   dialog.autoDetect( false /*quiet: report if nothing is plate solved*/ );
+
+   if ( !dialog.execute() )
+      return;
+
+   data.saveSettings();
+
+   let engine = new MosaicToolboxEngine( data );
+   try
    {
-      let dialog = new MosaicToolboxDialog( data );
-      if ( !scanned )
-      {
-         dialog.autoDetect( false /*quiet: report if nothing is plate solved*/ );
-         scanned = true;
-      }
-      else
-         dialog.refreshTree();          // reopened after a language change
-
-      let accepted = dialog.execute();
-
-      // A language change closes the dialog so it can be rebuilt with the new
-      // strings. The image table lives on `data`, so nothing is lost.
-      if ( dialog.languageRestart )
-      {
-         // Each dialog owns a TreeBox with a node per open window; release it
-         // rather than leave a discarded one to the collector.
-         try { dialog.dispose(); } catch ( x ) { /* older builds collect it */ }
-         continue;
-      }
-      if ( !accepted )
-         break;
-
-      data.saveSettings();
-
-      let engine = new MosaicToolboxEngine( data );
-      try
-      {
-         engine.run();
-      }
-      catch ( x )
-      {
-         console.criticalln( "*** " + MT_TITLE() + ": " + (x.message ? x.message : x.toString()) );
-         new MessageBox( "<p>" + (x.message ? x.message : x.toString()) + "</p>",
-                         MT_TITLE(), StdIcon.Error, StdButton.Ok ).execute();
-      }
-      finally
-      {
-         engine.dispose();
-      }
-
-      // One run per invocation. The source images are untouched, but the
-      // workspace has changed underneath the table, so re-showing the same
-      // selection would be misleading; start the script again to build more.
-      break;
+      engine.run();
    }
+   catch ( x )
+   {
+      console.criticalln( "*** " + MT_TITLE() + ": " + (x.message ? x.message : x.toString()) );
+      new MessageBox( "<p>" + (x.message ? x.message : x.toString()) + "</p>",
+                      MT_TITLE(), StdIcon.Error, StdButton.Ok ).execute();
+   }
+   finally
+   {
+      engine.dispose();
+   }
+
+   // One run per invocation. The source images are untouched, but the workspace
+   // has changed underneath the table, so re-showing the same selection would be
+   // misleading; start the script again to build more.
 }
 
 mtMain();

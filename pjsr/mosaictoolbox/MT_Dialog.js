@@ -99,12 +99,9 @@ class MosaicToolboxDialog extends Dialog
       // =====================================================================
       // Language
       //
-      // Changing it cannot re-label a dialog that is already built, so the
-      // dialog closes and mtMain() opens a fresh one. The image table lives on
-      // `data`, so nothing the user has set up is lost.
+      // Changing it retranslates the whole dialog in place (see applyLanguage
+      // below), so nothing is closed and nothing the user has set up is lost.
       // =====================================================================
-      this.languageRestart = false;
-
       let language_Label = new Label( this );
       language_Label.text = mtT( "Language:" );
       language_Label.textAlignment = TextAlignment.Right | TextAlignment.VertCenter;
@@ -125,14 +122,10 @@ class MosaicToolboxDialog extends Dialog
          let code = self.languageCodes[i];
          if ( code === data.language )
             return;
-         data.language = code;
-         mtSetLanguage( code );
-         // Only the language: the rest of the dialog is about to be discarded, and
-         // saveSettings() here would persist a channel selection and a set of
-         // options the user never accepted.
-         data.saveLanguage();
-         self.languageRestart = true;
-         self.cancel();
+         // Retranslate in place rather than closing and reopening the window,
+         // the way the sibling CaeloWorks scripts do. applyLanguage() persists
+         // the choice itself.
+         self.applyLanguage( code );
       };
 
       // =====================================================================
@@ -884,6 +877,150 @@ class MosaicToolboxDialog extends Dialog
       for ( let bar of [ channels_Section, images_Section, prep_Section,
                          grid_Section, join_Section, output_Section ] )
          bar.onToggleSection = onToggleSection;
+
+      // =====================================================================
+      // Live language switch
+      //
+      // Retranslate every control in place, the way the sibling CaeloWorks
+      // scripts do, rather than closing and reopening the window. Every local
+      // control built above is still in scope here, so this one closure can
+      // reach all of them. Data values in the tree (identifiers, coordinates)
+      // are not translated - they are what a user pastes into a forum post.
+      // =====================================================================
+      this.applyLanguage = function ( code )
+      {
+         mtSetLanguage( code );
+         data.language = code;
+         data.saveLanguage();
+
+         // SectionBar.title assigned after construction does not always repaint;
+         // set the underlying label too. Both are guarded so a build that
+         // exposes neither keeps the language the bar opened in rather than throw.
+         let retitle = function ( bar, key )
+         {
+            try { bar.title = mtT( key ); } catch ( x ) {}
+            try { if ( bar.label != null ) bar.label.text = mtT( key ); } catch ( x ) {}
+         };
+         // Rebuild a combo's items in the current language, keeping the selection.
+         let rebuildItems = function ( combo, texts )
+         {
+            let cur = combo.currentItem;
+            combo.clear();
+            for ( let t of texts )
+               combo.addItem( t );
+            combo.currentItem = Math.max( 0, Math.min( cur, texts.length - 1 ) );
+         };
+
+         // Header
+         self.tagline_Label.text = "<i>" + mtT( "ui.tagline" ) + "</i>";
+         self.desc_Label.text = mtT( "ui.header" );
+         language_Label.text = mtT( "Language:" );
+         self.language_ComboBox.toolTip = mtT( "tip.language" );
+
+         // Channels
+         for ( let f of MT_STANDARD_FILTERS() )
+            if ( self.filterCheckBoxes[f.key] )
+               self.filterCheckBoxes[f.key].toolTip =
+                  mtTv( "tip.filter", { LABEL: mtT( f.label ), ID: data.outputPrefix + f.key } );
+         customLabel.text = mtT( "Other channels:" );
+         customLabel.toolTip = mtTv( "tip.custom", { N: MT_CUSTOM_SLOTS(), PREFIX: data.outputPrefix } );
+         for ( let e of self.customEdits )
+            e.toolTip = customLabel.toolTip;
+
+         // Images
+         self.tree.setHeaderText( 0, mtT( "Window" ) );
+         self.tree.setHeaderText( 1, mtT( "Channel" ) );
+         self.tree.setHeaderText( 2, mtT( "Tile" ) );
+         self.tree.setHeaderText( 3, mtT( "FILTER" ) );
+         self.tree.setHeaderText( 4, mtT( "RA" ) );
+         self.tree.setHeaderText( 5, mtT( "Dec" ) );
+         self.tree.setHeaderText( 6, mtT( "arcsec/px" ) );
+         self.tree.toolTip = mtT( "tip.tree" );
+         refresh_Button.text  = mtT( "Rescan windows" );  refresh_Button.toolTip  = mtT( "tip.rescan" );
+         renumber_Button.text = mtT( "Renumber tiles" );  renumber_Button.toolTip = mtT( "tip.renumber" );
+         remove_Button.text   = mtT( "Remove selected" ); remove_Button.toolTip   = mtT( "tip.remove" );
+         setChannel_Label.text = mtT( "Set channel:" );
+         self.channel_ComboBox.toolTip = mtT( "tip.setChannel" );
+         applyChannel_Button.text = mtT( "Apply" ); applyChannel_Button.toolTip = mtT( "tip.applyChannel" );
+         setTile_Label.text = mtT( "Set tile:" );
+         self.tile_SpinBox.toolTip = mtT( "tip.setTile" );
+         applyTile_Button.text = mtT( "Apply" ); applyTile_Button.toolTip = mtT( "tip.applyTile" );
+
+         // Tile preparation
+         trim_Label.text = mtT( "Edge trim:" );
+         self.trim_SpinBox.toolTip = mtT( "tip.trim" );
+         interp_Label.text = mtT( "Interpolation:" );
+         rebuildItems( self.interp_ComboBox, self.interpolationItems.map( it => mtT( it.text ) ) );
+         self.interp_ComboBox.toolTip = mtT( "tip.interpolation" );
+         self.clamping_NumericEdit.label.text = mtT( "Clamping:" );
+         self.clamping_NumericEdit.toolTip = mtT( "tip.clamping" );
+
+         // Common mosaic grid
+         self.autoRes_CheckBox.text    = mtT( "Auto resolution" );  self.autoRes_CheckBox.toolTip    = mtT( "tip.autoResolution" );
+         self.autoRot_CheckBox.text    = mtT( "Auto rotation" );    self.autoRot_CheckBox.toolTip    = mtT( "tip.autoRotation" );
+         self.autoCentre_CheckBox.text = mtT( "Auto centre" );      self.autoCentre_CheckBox.toolTip = mtT( "tip.autoCentre" );
+         self.autoProj_CheckBox.text   = mtT( "Auto projection" );  self.autoProj_CheckBox.toolTip   = mtT( "tip.autoProjection" );
+         self.autoDim_CheckBox.text    = mtT( "Auto dimensions" );  self.autoDim_CheckBox.toolTip    = mtT( "tip.autoDimensions" );
+         self.res_NumericEdit.label.text = mtT( "arcsec/px:" );
+         self.rot_NumericEdit.label.text = mtT( "degrees:" );
+         self.ra_NumericEdit.label.text  = mtT( "RA (deg):" );
+         self.dec_NumericEdit.label.text = mtT( "Dec (deg):" );
+         rebuildItems( self.proj_ComboBox, self.projectionItems.map( it => mtT( it.text ) ) );
+
+         // Photometric join
+         self.overlay_RadioButton.text = mtT( "Overlay" ); self.overlay_RadioButton.toolTip = mtT( "tip.overlay" );
+         self.random_RadioButton.text  = mtT( "Random" );  self.random_RadioButton.toolTip  = mtT( "tip.random" );
+         self.average_RadioButton.text = mtT( "Average" ); self.average_RadioButton.toolTip = mtT( "tip.averageMode" );
+         joinMode_Label.text = mtT( "Join mode:" );
+         self.joinSize_NumericEdit.label.text = mtT( "Blend band:" );
+         self.joinSize_NumericEdit.toolTip = mtT( "tip.blendBand" );
+         stripAxis_Label.text = mtT( "Join order:" );
+         rebuildItems( self.stripAxis_ComboBox, [ mtT( "Auto" ),
+            mtT( "Rows first, then join the rows" ), mtT( "Columns first, then join the columns" ) ] );
+         self.stripAxis_ComboBox.toolTip = mtT( "tip.joinOrder" );
+         self.starDetection_NumericEdit.label.text = mtT( "Star detection:" );
+         self.starDetection_NumericEdit.toolTip = mtT( "tip.starDetection" );
+         sampleSize_Label.text = mtT( "Sample size:" );
+         self.sampleSize_SpinBox.toolTip = mtT( "tip.sampleSize" );
+         self.starGrowth_NumericEdit.label.text = mtT( "Star rejection:" );
+         self.starGrowth_NumericEdit.toolTip = mtT( "tip.starRejection" );
+         self.smoothness_NumericEdit.label.text = mtT( "Smoothness:" );
+         self.smoothness_NumericEdit.toolTip = mtT( "tip.smoothness" );
+         self.autoTaper_CheckBox.text = mtT( "Auto taper" ); self.autoTaper_CheckBox.toolTip = mtT( "tip.taper" );
+         self.taper_SpinBox.toolTip = self.autoTaper_CheckBox.toolTip;
+
+         // Output
+         prefix_Label.text = mtT( "Output prefix:" );
+         self.prefix_Edit.toolTip = mtT( "tip.prefix" );
+         self.autoCrop_CheckBox.text = mtT( "Autocrop to the area all channels cover" );
+         self.autoCrop_CheckBox.toolTip = mtT( "tip.autocrop" );
+         self.autoStretch_CheckBox.text = mtT( "Auto-stretch the result" );
+         self.autoStretch_CheckBox.toolTip = mtT( "tip.autostretch" );
+         self.keepIntermediates_CheckBox.text = mtT( "Keep intermediate windows" );
+         self.keepIntermediates_CheckBox.toolTip = mtT( "tip.keepIntermediates" );
+         self.regenerate_CheckBox.text = mtT( "Rebuild astrometric solution" );
+         self.regenerate_CheckBox.toolTip = mtT( "tip.regenerate" );
+
+         // Buttons
+         plan_Button.text = mtT( "Check plan" ); plan_Button.toolTip = mtT( "tip.checkPlan" );
+         self.run_Button.text = mtT( "Run" );    self.run_Button.toolTip = mtT( "tip.run" );
+         cancel_Button.text = mtT( "Cancel" );
+
+         // Section bars
+         retitle( channels_Section, "Channels" );
+         retitle( images_Section,   "Images" );
+         retitle( prep_Section,     "Tile preparation" );
+         retitle( grid_Section,     "Common mosaic grid" );
+         retitle( join_Section,     "Photometric join" );
+         retitle( output_Section,   "Output" );
+
+         // Anything carrying channel names or per-row status text.
+         self.rebuildChannelCombo();   // also refreshes the output preview
+         self.refreshTree();           // the "unsolved" cells are translated
+
+         self.adjustToContents();
+         self.capHeight();             // French text is longer; keep it on-screen
+      };
 
       // =====================================================================
       // Layout

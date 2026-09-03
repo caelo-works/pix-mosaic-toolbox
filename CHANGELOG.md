@@ -55,6 +55,10 @@ is packaging, testing and repository infrastructure.
 
 ### Changed
 
+- Switching the interface language now retranslates the dialog in place, the way
+  the sibling CaeloWorks scripts do, instead of closing and reopening the window.
+  The image table, settings and the current view are kept untouched. The
+  reopen-loop that drove the old behaviour is gone from the entry point.
 - The source tree moved under `pjsr/` (entry point plus the `mosaictoolbox/`
   module folder), the layout the packaging and staging scripts expect. The
   `#include` paths are unchanged, so the script still runs from the folder as-is.
