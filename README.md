@@ -1,24 +1,42 @@
-# Mosaic Toolbox 2.4.0 — PixInsight script
+<div align="center">
 
-One script, one dialog, one run: several filters of a mosaic assembled onto a
-single common grid.
+# Mosaic Toolbox
+
+### Several filters of a mosaic, assembled onto one common grid in a single run
+
+[![Version](https://img.shields.io/badge/version-2.4.0-22d3ee?style=for-the-badge&labelColor=0f172a)](https://github.com/caelo-works/pix-mosaic-toolbox/releases/latest)
+[![PixInsight](https://img.shields.io/badge/PixInsight-%E2%89%A5%201.9.4-67e8f9?style=for-the-badge&labelColor=0f172a)](https://pixinsight.com/)
+[![Status](https://img.shields.io/badge/status-stable-34d399?style=for-the-badge&labelColor=0f172a)](https://pixinsight-scripts.caelo.works/en/scripts/pix-mosaic-toolbox)
+[![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-94a3b8?style=for-the-badge&labelColor=0f172a)](LICENSE)
+[![Website](https://img.shields.io/badge/%E2%86%92%20see%20all%20scripts-pixinsight--scripts.caelo.works-0f172a?style=for-the-badge&labelColor=22d3ee)](https://pixinsight-scripts.caelo.works/en)
+
+[![CaeloWorks · PixInsight Scripts](https://pixinsight-scripts.caelo.works/assets/readme-banner.png)](https://pixinsight-scripts.caelo.works/en)
+
+</div>
+
+---
+
+## Overview
+
+A PixInsight script that assembles a multi-filter mosaic in one pass. It reprojects every
+plate-solved tile onto **one** common astrometric grid, erodes the soft reprojection edges, and
+joins the tiles photometrically — star flux ratios for the brightness scale, a smoothed surface
+spline for the residual gradient.
 
     Plate-solved tiles          →     MosaicL   MosaicR   MosaicG   MosaicB
     (L, R, G, B, S, H, O …)           MosaicS   MosaicH   MosaicO   Mosaic<yours>
 
-Every output shares **identical coordinates, field of view, orientation and
-pixel dimensions**, so they can be combined straight away (ChannelCombination,
-PixelMath, LRGB, SHO …) with no further registration.
+Every output shares **identical coordinates, field of view, orientation and pixel dimensions**, so
+they combine straight away (ChannelCombination, PixelMath, LRGB, SHO …) with no further
+registration.
+
+**Self-contained.** Nothing to install but this script. Version 1 drove PhotometricMosaic;
+version 2 has its own photometric join engine and no external dependency at all.
+
+**English and French** throughout — dialog, tooltips, console output, warnings and errors. Pick the
+language from the header; it switches the whole window in place, and the choice is remembered.
 
 ![The Mosaic Toolbox dialog](docs/images/MosaicToolbox-dialog.png)
-
-**Self-contained.** Nothing to install but this script. Version 1 drove
-PhotometricMosaic; version 2 has its own photometric join engine and no external
-dependency at all.
-
-**English and French.** The whole script — dialog, tooltips, console output,
-warnings and error messages — is available in both. Pick the language from the
-selector at the top of the dialog; the choice is remembered.
 
 ---
 
@@ -92,12 +110,26 @@ Otherwise that is the whole list. The script uses only core PixInsight objects �
 
 ## Installation
 
+### Through the CaeloWorks update repository (recommended)
+
+Updates then arrive on their own, along with every other CaeloWorks script.
+
+1. In PixInsight: **Resources → Updates → Manage Repositories**.
+2. **Add** `https://pixinsight-scripts.caelo.works/update/`.
+3. **Resources → Updates → Check for Updates**, then restart PixInsight.
+
+The repository is not yet signed with a Certified PixInsight Developer identity, so PixInsight
+warns that it is unsigned. That is expected, and affects every CaeloWorks script equally.
+
 ### From a release
 
 Download `MosaicToolbox-<version>.zip` from the
 [releases](https://github.com/caelo-works/pix-mosaic-toolbox/releases) and unzip
-it over your PixInsight installation directory — its tree is laid out relative to
-that directory. It then appears under **Script → CaeloWorks → Mosaic Toolbox**.
+it over your PixInsight installation directory — it carries the
+`src/scripts/CaeloWorks/…` tree PixInsight expects. It then appears under
+**Script → CaeloWorks → Mosaic Toolbox**.
+
+Requires PixInsight 1.9.4 or later.
 
 ### From the source tree
 
@@ -132,9 +164,9 @@ folder together, with that folder name and the module filenames unchanged.
 1. Open every tile of every filter you want to assemble. All linear, all plate
    solved, all already corrected for gradients.
 2. **Script → CaeloWorks → Mosaic Toolbox**.
-3. Set **Language** if you want French. The dialog reopens in the chosen
-   language with your table and settings intact, and the choice is remembered
-   for next time. Everything the script prints to the console follows it too.
+3. Set **Language** if you want French. The dialog retranslates in place, table
+   and settings intact, and the choice is remembered for next time. Everything
+   the script prints to the console follows it too.
 4. Check the table. Each row is one open image:
 
    | Column | Meaning |
@@ -306,10 +338,10 @@ keep every pixel the mosaic covers and crop by hand later.
 **Auto-stretch the result** (on by default). Screen only; costs nothing and
 changes no data.
 
-**Language** (top of the dialog). English or French. Changing it closes and
-reopens the dialog so every string can be rebuilt; nothing you have set is lost.
-FITS `HISTORY` records stay in English whatever you pick, so a mosaic built in
-French is still readable by anyone.
+**Language** (in the header). English or French. Changing it retranslates the
+whole dialog in place; nothing you have set is lost. FITS `HISTORY` records stay
+in English whatever you pick, so a mosaic built in French is still readable by
+anyone.
 
 **Common mosaic grid** (collapsed section). Everything is automatic by default.
 Override resolution, rotation, centre, projection or dimensions here if you need
@@ -408,21 +440,36 @@ For the module map and how the pieces fit together, see
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). To work on the script, see
 [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## Maintenance
+---
 
-Written by **Nicolas Godingen**. Maintained and distributed by
-**[Caelo Works](https://caelo.works)** from version 2.3.1 onwards, with the
-author's agreement.
+## Credit and licence
 
-## Credits and licence
+**Nicolas Godingen** wrote Mosaic Toolbox, and the heart of it is his — the common grid, the
+reprojection, the photometric join, and every default that makes an unattended multi-filter
+assembly come out right. He built it against his own mosaics, and it shows in the parts a quicker
+tool would have skipped: one grid computed from every filter at once, so the channels land
+pixel-for-pixel on each other; a join that measures the scale from matched star apertures before it
+ever touches the gradient; and failure messages that name the offending tile and tell you what to
+change. Caelo Works is glad to carry it forward — thank you, Nico.
 
-The astrometric grid computation in `MT_Astrometry.js` is derived from the
-**MosaicByCoordinates** script, © 2013–2026 Andrés del Pozo and © 2019–2026 Juan
-Conejero (PTeam), used under the PixInsight Class Library License 2.0. This
-product is based on software from the PixInsight project, developed by Pleiades
-Astrophoto and its contributors (<https://pixinsight.com/>).
+The astrometric grid computation in `MT_Astrometry.js` derives from the **MosaicByCoordinates**
+script, © 2013–2026 Andrés del Pozo and © 2019–2026 Juan Conejero (PTeam), used under the PixInsight
+Class Library License 2.0.
 
-Everything else is original. Mosaic Toolbox is licensed under
-**CC BY-NC 4.0** — see [LICENSE](LICENSE); the full attributions the licences
-require are in [NOTICE.md](NOTICE.md). Provided as-is, without warranty of any
-kind.
+This product is based on software from the PixInsight project, developed by Pleiades Astrophoto and
+its contributors (<https://pixinsight.com/>).
+
+---
+
+## Licence
+
+Licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/) — share and adapt
+freely for non-commercial purposes, with credit. The NonCommercial condition is the author's
+deliberate choice, applied across the scripts he maintains with Caelo Works; unlike some of them it
+is **not** forced by any upstream work — the MosaicByCoordinates code it builds on is permissive.
+[LICENSE](LICENSE) sets that out, and the full attribution chain — which the PixInsight Class
+Library License requires to travel with the script — is in [NOTICE.md](NOTICE.md).
+
+Maintained by [Caelo Works](https://caelo.works) with the agreement of the original author. See
+[CHANGELOG.md](CHANGELOG.md) for release history, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for
+how it is put together, and [CONTRIBUTING.md](CONTRIBUTING.md) if you want to work on it.

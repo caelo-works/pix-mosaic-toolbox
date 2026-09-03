@@ -38,7 +38,7 @@
 
 3. Update `CHANGELOG.md` — move `[Unreleased]` into a `[X.Y.Z]` section dated
    today, and record the validation evidence from step 2. Update the README
-   version heading.
+   version badge.
 
 4. **Re-read `docs/ARCHITECTURE.md` against the code.** Every constant, default,
    file name and pipeline step named there must match what the code at the tag
