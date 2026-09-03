@@ -163,10 +163,15 @@ function mtCatalogue()
    // =========================================================================
    // Dialog - long passages
    // =========================================================================
+   "ui.tagline":
+   {
+      en: "Multi-filter mosaic assembly onto one common grid.",
+      fr: "Assemblage de mosaïques multi-filtres sur une grille commune."
+   },
+
    "ui.header":
    {
-      en: "<p><b>%TITLE% %VERSION%</b> &mdash; multi-filter mosaic assembly.</p>" +
-          "<p>Every selected tile of every selected channel is reprojected onto <i>one</i> " +
+      en: "<p>Every selected tile of every selected channel is reprojected onto <i>one</i> " +
           "astrometric grid, its soft edges are eroded, and the tiles are joined " +
           "photometrically, rows first and then columns. All channels therefore share " +
           "identical coordinates, field of view and dimensions.</p>" +
@@ -175,8 +180,7 @@ function mtCatalogue()
           "The join matches the tiles to each other; it cannot remove a gradient they share, and " +
           "an uncorrected one in a single tile is carried into the mosaic.</p>" +
           "<p>Nothing else is needed: registration, edge trimming and the join are all done here.</p>",
-      fr: "<p><b>%TITLE% %VERSION%</b> &mdash; assemblage de mosaïques multi-filtres.</p>" +
-          "<p>Chaque tuile sélectionnée de chaque canal sélectionné est reprojetée sur " +
+      fr: "<p>Chaque tuile sélectionnée de chaque canal sélectionné est reprojetée sur " +
           "<i>une seule</i> grille astrométrique, ses bords incomplets sont érodés, puis les " +
           "tuiles sont jointes photométriquement, les rangées d'abord puis les colonnes. " +
           "Tous les canaux partagent donc des coordonnées, un champ et des dimensions " +

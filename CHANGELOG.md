@@ -18,6 +18,10 @@ is packaging, testing and repository infrastructure.
 
 ### Added
 
+- A branded header matching the other CaeloWorks scripts: the menu icon as an
+  emblem, the title, a version and maintainer line, and the language selector on
+  one row, with the tagline and the requirement notes below it. Colored resource
+  icons on the Check plan, Run and Cancel buttons.
 - A Node test harness (`tests/`) that drives the pure-logic layer — filter
   matching, robust statistics, view identifiers, the join layout and order, the
   star merge, the midtones transfer function and the autocrop rectangle, the

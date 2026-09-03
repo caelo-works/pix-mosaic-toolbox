@@ -36,19 +36,58 @@ ok( macros.length >= 2, 'the entry defines object-like macros (' + macros.join( 
 ok( macros.indexOf( 'TITLE' ) >= 0 && macros.indexOf( 'VERSION' ) >= 0,
     'TITLE and VERSION are among them (the ones mtTv passes as keys)' );
 
-// Remove block comments, line comments, then string literals, then the
-// preprocessor directive lines. What remains is executable JavaScript with no
-// text that the preprocessor would have left a macro name inside.
+// Blank out comments and string contents, then drop the preprocessor directive
+// lines. What remains is executable JavaScript with no text that the
+// preprocessor would have left a macro name inside. A char-by-char scan rather
+// than a set of regexes, because a `//` inside a string (the maintainer URL) or
+// an apostrophe inside a French catalogue string desyncs a regex stripper — the
+// exact failure this guard exists to be trusted about.
 function executableOnly( src )
 {
-   let s = src.replace( /\/\*[\s\S]*?\*\//g, ' ' )     // block comments
-             .replace( /\/\/[^\n]*/g, ' ' )            // line comments
-             .replace( /"(?:\\.|[^"\\])*"/g, '""' )    // double-quoted strings
-             .replace( /'(?:\\.|[^'\\])*'/g, "''" )    // single-quoted strings
-             .replace( /`(?:\\.|[^`\\])*`/g, '``' );   // template strings
+   let out = '';
+   const NORMAL = 0, LINE = 1, BLOCK = 2, DQ = 3, SQ = 4, TMPL = 5;
+   let st = NORMAL;
+   for ( let i = 0; i < src.length; )
+   {
+      const c = src[i], d = src[i + 1];
+      switch ( st )
+      {
+      case NORMAL:
+         if ( c === '/' && d === '/' ) { st = LINE;  i += 2; }
+         else if ( c === '/' && d === '*' ) { st = BLOCK; i += 2; }
+         else if ( c === '"' )  { st = DQ;   out += '""'; i += 1; }
+         else if ( c === "'" )  { st = SQ;   out += "''"; i += 1; }
+         else if ( c === '`' )  { st = TMPL; out += '``'; i += 1; }
+         else { out += c; i += 1; }
+         break;
+      case LINE:
+         if ( c === '\n' ) { st = NORMAL; out += '\n'; }
+         i += 1;
+         break;
+      case BLOCK:
+         if ( c === '*' && d === '/' ) { st = NORMAL; i += 2; }
+         else { if ( c === '\n' ) out += '\n'; i += 1; }
+         break;
+      case DQ:
+         if ( c === '\\' ) i += 2;
+         else if ( c === '"' ) { st = NORMAL; i += 1; }
+         else i += 1;
+         break;
+      case SQ:
+         if ( c === '\\' ) i += 2;
+         else if ( c === "'" ) { st = NORMAL; i += 1; }
+         else i += 1;
+         break;
+      case TMPL:
+         if ( c === '\\' ) i += 2;
+         else if ( c === '`' ) { st = NORMAL; i += 1; }
+         else i += 1;
+         break;
+      }
+   }
    // Drop preprocessor directive lines (the #define itself legitimately names
    // the macro). Private class members like #key() are not directives and stay.
-   return s.split( '\n' ).filter( line =>
+   return out.split( '\n' ).filter( line =>
       !/^\s*#(include|define|undef|ifndef|ifdef|elif|endif|else|if|feature-id|feature-info|feature-icon|engine|script-id|pragma|error|warning|import|target)\b/.test( line )
    ).join( '\n' );
 }

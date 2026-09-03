@@ -8,6 +8,64 @@
 
 // ----------------------------------------------------------------------------
 
+// ----------------------------------------------------------------------------
+// Small UI helpers, shared with the header and the button row. The same shape
+// every CaeloWorks script wears, so a user who knows one recognises the next.
+// ----------------------------------------------------------------------------
+
+/** The emblem file, looked for beside the script and in the installed icon dir. */
+function MT_ICON_NAME() { return "MosaicToolbox.svg"; }
+
+/**
+ * Assign a core icon resource to a button, degrading to a text fallback rather
+ * than throwing inside the constructor (which would kill the script before the
+ * dialog ever appeared).
+ */
+function mtSetIcon( dialog, button, resource, fallbackText )
+{
+   try
+   {
+      let bmp = dialog.scaledResource( resource );
+      if ( bmp !== null && bmp !== undefined && !bmp.isNull )
+      {
+         button.icon = bmp;
+         return true;
+      }
+   }
+   catch ( x ) { /* fall through to the text fallback */ }
+   if ( fallbackText !== null && fallbackText !== undefined )
+      button.text = fallbackText;
+   return false;
+}
+
+/**
+ * Open a URL with the platform's default handler. The maintainer line in the
+ * header is a link, and PJSR has no browser of its own. A header that cannot
+ * open a browser is not a reason to stop working.
+ */
+function mtOpenInBrowser( url )
+{
+   try
+   {
+      let plat = String( CoreApplication.platform );
+      let P = new ExternalProcess;
+      if ( /win|mswindows/i.test( plat ) )
+         P.start( "cmd", [ "/c", "start", "", url ] );
+      else if ( /mac|osx/i.test( plat ) )
+         P.start( "/usr/bin/open", [ url ] );
+      else
+         P.start( "xdg-open", [ url ] );
+      if ( P.waitForStarted )
+         P.waitForStarted();
+   }
+   catch ( x )
+   {
+      console.warningln( "Could not open " + url );
+   }
+}
+
+// ----------------------------------------------------------------------------
+
 class MosaicToolboxDialog extends Dialog
 {
    /**
@@ -77,23 +135,97 @@ class MosaicToolboxDialog extends Dialog
          self.cancel();
       };
 
-      let language_Sizer = new HorizontalSizer;
-      language_Sizer.scaledSpacing = 4;
-      language_Sizer.addStretch();
-      language_Sizer.add( language_Label );
-      language_Sizer.add( this.language_ComboBox );
+      // =====================================================================
+      // Header: emblem, title, the maintainer/version line, and the language
+      // selector on one row; the tagline and the descriptive paragraphs below.
+      // The same shape the other CaeloWorks PixInsight scripts wear.
+      // =====================================================================
 
-      // =====================================================================
-      // Header
-      // =====================================================================
-      let title_Label = new Label( this );
-      title_Label.useRichText = true;
-      title_Label.wordWrapping = true;
-      title_Label.minWidth = 60 * emWidth;
-      // The keys are quoted so the PixInsight preprocessor does not substitute
-      // its #define'd TITLE / VERSION macros into them, which would rename the
-      // keys and leave the %TITLE% / %VERSION% placeholders unfilled.
-      title_Label.text = mtTv( "ui.header", { "TITLE": MT_TITLE(), "VERSION": MT_VERSION() } );
+      // The menu icon, painted at the header's left. Looked for where a dev
+      // staging puts it (assets/ beside the module folder), then where the
+      // package installs it (rsc/icons/script/). Sized in physical pixels so it
+      // follows a high-density display's UI scaling, and null on any failure so
+      // the header simply loses its emblem rather than the dialog failing to open.
+      this.emblem_Control = (function ( dlg )
+      {
+         let here = File.extractDrive( #__FILE__ ) + File.extractDirectory( #__FILE__ );
+         let name = MT_ICON_NAME();
+         let candidates = [ here + "/../assets/" + name,
+                            here + "/assets/" + name,
+                            here + "/" + name,
+                            // This module lives in mosaictoolbox/, so the PixInsight
+                            // root is five levels up from the vendor directory.
+                            here + "/../../../../../rsc/icons/script/MosaicToolbox/" + name ];
+         let px = (typeof dlg.logicalPixelsToPhysical == "function")
+                ? dlg.logicalPixelsToPhysical( 44 ) : 44;
+         let bmp = null;
+         for ( let i = 0; i < candidates.length && bmp === null; ++i )
+            try
+            {
+               if ( File.exists( candidates[i] ) )
+               {
+                  let b = new Bitmap( candidates[i] );
+                  bmp = (typeof b.scaledTo == "function") ? b.scaledTo( px, px ) : b;
+               }
+            }
+            catch ( x ) { bmp = null; }
+         if ( bmp === null )
+            return null;
+         let ctrl = new Control( dlg );
+         ctrl.setScaledFixedSize( 44, 44 );
+         ctrl.__bmp = bmp;
+         ctrl.onPaint = function ()
+         {
+            let g = new Graphics( this );
+            try { g.drawBitmap( 0, 0, this.__bmp ); } catch ( x ) {}
+            g.end();
+         };
+         return ctrl;
+      })( this );
+
+      let titleName_Label = new Label( this );
+      titleName_Label.text = MT_TITLE();
+      {
+         let tf = titleName_Label.font;
+         tf.bold = true;
+         tf.pointSize = Math.round( this.font.pointSize * 1.7 );
+         titleName_Label.font = tf;
+      }
+
+      // Version and maintainer. The author's name is deliberately not shown here
+      // (see NOTICE.md); the Caelo Works link is the distribution identity, the
+      // same as the sibling scripts.
+      let by_Label = new Label( this );
+      by_Label.useRichText = true;
+      by_Label.textAlignment = TextAlignment.Left | TextAlignment.VertCenter;
+      by_Label.text = "v" + MT_VERSION() + " &middot; <a href='#'>Caelo Works</a>";
+      by_Label.onMousePress = function () { mtOpenInBrowser( "https://pixinsight-scripts.caelo.works/" ); };
+      try { by_Label.cursor = new Cursor( StdCursor_PointingHand ); } catch ( x ) {}
+
+      let titleColumn_Sizer = new VerticalSizer;
+      titleColumn_Sizer.add( titleName_Label );
+      titleColumn_Sizer.add( by_Label );
+
+      this.header_Sizer = new HorizontalSizer;
+      this.header_Sizer.scaledSpacing = 10;
+      if ( this.emblem_Control !== null )
+         this.header_Sizer.add( this.emblem_Control );
+      this.header_Sizer.add( titleColumn_Sizer );
+      this.header_Sizer.addStretch();
+      this.header_Sizer.add( language_Label );
+      this.header_Sizer.addSpacing( 4 );
+      this.header_Sizer.add( this.language_ComboBox );
+
+      this.tagline_Label = new Label( this );
+      this.tagline_Label.useRichText = true;
+      this.tagline_Label.wordWrapping = true;
+      this.tagline_Label.text = "<i>" + mtT( "ui.tagline" ) + "</i>";
+
+      this.desc_Label = new Label( this );
+      this.desc_Label.useRichText = true;
+      this.desc_Label.wordWrapping = true;
+      this.desc_Label.minWidth = 60 * emWidth;
+      this.desc_Label.text = mtT( "ui.header" );
 
       // =====================================================================
       // Channels
@@ -703,11 +835,13 @@ class MosaicToolboxDialog extends Dialog
       // =====================================================================
       let plan_Button = new PushButton( this );
       plan_Button.text = mtT( "Check plan" );
+      mtSetIcon( this, plan_Button, ":/icons/find.png", null );
       plan_Button.toolTip = mtT( "tip.checkPlan" );
       plan_Button.onClick = function () { self.checkPlan(); };
 
       this.run_Button = new PushButton( this );
       this.run_Button.text = mtT( "Run" );
+      mtSetIcon( this, this.run_Button, ":/icons/power.png", null );
       this.run_Button.defaultButton = true;
       this.run_Button.toolTip = mtT( "tip.run" );
       this.run_Button.onClick = function ()
@@ -723,6 +857,7 @@ class MosaicToolboxDialog extends Dialog
 
       let cancel_Button = new PushButton( this );
       cancel_Button.text = mtT( "Cancel" );
+      mtSetIcon( this, cancel_Button, ":/icons/close.png", null );
       cancel_Button.onClick = function () { self.cancel(); };
 
       let buttons_Sizer = new HorizontalSizer;
@@ -756,8 +891,10 @@ class MosaicToolboxDialog extends Dialog
       this.sizer = new VerticalSizer;
       this.sizer.scaledMargin = 8;
       this.sizer.scaledSpacing = 6;
-      this.sizer.add( language_Sizer );
-      this.sizer.add( title_Label );
+      this.sizer.add( this.header_Sizer );
+      this.sizer.add( this.tagline_Label );
+      this.sizer.addSpacing( 2 );
+      this.sizer.add( this.desc_Label );
       this.sizer.add( channels_Section );
       this.sizer.add( channels_Control );
       this.sizer.add( images_Section );
