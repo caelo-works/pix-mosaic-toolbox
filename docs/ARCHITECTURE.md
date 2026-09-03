@@ -43,6 +43,7 @@ What is tested is the pure-logic layer:
 | Suite | What it holds still |
 |---|---|
 | `strings` | The two catalogues carry the same keys, the printf placeholders match in order between languages, and `mtT`/`mtTv` fall back and substitute correctly |
+| `i18n` | Every `mtT`/`mtTv` key used in the source (direct, concatenated or in a ternary) exists in the catalogue, and no tooltip is a hard-coded string |
 | `filters` | `FILTER` keyword → channel key: exact aliases beat prefixes, longest prefix wins |
 | `statistics` | `mtMedian`/`mtMAD`/`mtMean` on partial fills and typed arrays, the 1.4826 MAD scaling |
 | `identifiers` | View id sanitisation and uniqueness, enum resolution by name with the first-item fallback, RA/Dec formatting |

@@ -26,7 +26,7 @@ is packaging, testing and repository infrastructure.
   matching, robust statistics, view identifiers, the join layout and order, the
   star merge, the midtones transfer function and the autocrop rectangle, the
   data model's validation, and the English/French catalogue — through a shim of
-  the PixInsight globals it touches. 128 assertions across eight suites.
+  the PixInsight globals it touches. 135 assertions across nine suites.
 - Continuous integration (`.github/workflows/ci.yml`): the test harness on two
   Node versions, a reproducible package build checked against the update site's
   ingest contract, and repository hygiene (shellcheck, SPDX headers, module
