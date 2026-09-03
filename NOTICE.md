@@ -91,8 +91,8 @@ attempt to reproduce; none of its code is used, copied or required here.
 
 ## Platform
 
-This product is based on software from the **PixInsight** project, developed by
-**Pleiades Astrophoto** and its contributors (<https://pixinsight.com/>).
+This product is based on software from the PixInsight project, developed by
+Pleiades Astrophoto and its contributors (https://pixinsight.com/).
 
 ---
 
