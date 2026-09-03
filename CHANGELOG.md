@@ -55,6 +55,9 @@ is packaging, testing and repository infrastructure.
 
 ### Changed
 
+- The requirement/help text at the top of the dialog moved into a collapsible
+  "Help" section that opens collapsed, so it does not take up room on every run.
+  The one-line tagline stays under the title.
 - Switching the interface language now retranslates the dialog in place, the way
   the sibling CaeloWorks scripts do, instead of closing and reopening the window.
   The image table, settings and the current view are kept untouched. The

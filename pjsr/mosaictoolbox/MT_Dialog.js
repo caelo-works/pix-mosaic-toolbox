@@ -214,11 +214,21 @@ class MosaicToolboxDialog extends Dialog
       this.tagline_Label.wordWrapping = true;
       this.tagline_Label.text = "<i>" + mtT( "ui.tagline" ) + "</i>";
 
+      // The requirement notes are useful once and then in the way, so they live
+      // in a "Help" section that opens collapsed, like the advanced grid below.
       this.desc_Label = new Label( this );
       this.desc_Label.useRichText = true;
       this.desc_Label.wordWrapping = true;
       this.desc_Label.minWidth = 60 * emWidth;
       this.desc_Label.text = mtT( "ui.header" );
+
+      let help_Control = new Control( this );
+      help_Control.sizer = new VerticalSizer;
+      help_Control.sizer.scaledSpacing = 4;
+      help_Control.sizer.add( this.desc_Label );
+
+      let help_Section = new SectionBar( this, mtT( "Help" ) );
+      help_Section.setSection( help_Control );
 
       // =====================================================================
       // Channels
@@ -874,7 +884,7 @@ class MosaicToolboxDialog extends Dialog
          dlg.setMinHeight();
          dlg.capHeight();
       };
-      for ( let bar of [ channels_Section, images_Section, prep_Section,
+      for ( let bar of [ help_Section, channels_Section, images_Section, prep_Section,
                          grid_Section, join_Section, output_Section ] )
          bar.onToggleSection = onToggleSection;
 
@@ -1007,6 +1017,7 @@ class MosaicToolboxDialog extends Dialog
          cancel_Button.text = mtT( "Cancel" );
 
          // Section bars
+         retitle( help_Section,     "Help" );
          retitle( channels_Section, "Channels" );
          retitle( images_Section,   "Images" );
          retitle( prep_Section,     "Tile preparation" );
@@ -1031,7 +1042,8 @@ class MosaicToolboxDialog extends Dialog
       this.sizer.add( this.header_Sizer );
       this.sizer.add( this.tagline_Label );
       this.sizer.addSpacing( 2 );
-      this.sizer.add( this.desc_Label );
+      this.sizer.add( help_Section );
+      this.sizer.add( help_Control );
       this.sizer.add( channels_Section );
       this.sizer.add( channels_Control );
       this.sizer.add( images_Section );
@@ -1047,10 +1059,11 @@ class MosaicToolboxDialog extends Dialog
       this.sizer.addScaledSpacing( 4 );
       this.sizer.add( buttons_Sizer );
 
-      // Advanced grid overrides start out of the way. Hiding the section's
-      // control is how the core scripts do this - SectionBar reads the
-      // section's visibility, so the bar's arrow follows. It must happen
-      // before adjustToContents(), or the hidden rows are still measured.
+      // The help notes and the advanced grid overrides start out of the way.
+      // Hiding the section's control is how the core scripts do this - SectionBar
+      // reads the section's visibility, so the bar's arrow follows. It must
+      // happen before adjustToContents(), or the hidden rows are still measured.
+      help_Control.hide();
       grid_Control.hide();
 
       this.adjustToContents();

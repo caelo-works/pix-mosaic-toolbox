@@ -74,6 +74,7 @@ function mtCatalogue()
    // Dialog - section bars and short controls
    // =========================================================================
    "Language:":                       { fr: "Langue :" },
+   "Help":                            { fr: "Aide" },
    "Channels":                        { fr: "Canaux" },
    "Images":                          { fr: "Images" },
    "Tile preparation":                { fr: "Préparation des tuiles" },
