@@ -1,0 +1,9 @@
+dist/
+tests/build/
+*.xssk
+*.log
+.DS_Store
+*:Zone.Identifier
+# Local working files (run artifacts dropped at the repo root)
+/*.png
+/*.jpg

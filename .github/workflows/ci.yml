@@ -1,0 +1,146 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Called by release.yml so a tag runs exactly these checks, not a copy of them
+  # that can drift.
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: PJSR tests (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # PixInsight's engine is neither of these. The matrix is not about
+        # matching it — it is about catching a suite that depends on one
+        # runtime's behaviour, which would mean it is testing Node and not the
+        # script.
+        node: ['22', '24']
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Run test harness
+        run: bash tests/run.sh
+
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build the update package
+        run: bash scripts/build-update-package.sh 0.0.0-ci
+
+      - name: Contents match the update site's ingest contract
+        run: bash scripts/check-package.sh dist/*.zip
+
+      - name: Zip is reproducible (same content -> same SHA-1)
+        run: |
+          name="$(ls dist/*.zip)"
+          a="$(sha1sum "$name" | cut -d' ' -f1)"
+          bash scripts/build-update-package.sh 0.0.0-ci
+          b="$(sha1sum "$name" | cut -d' ' -f1)"
+          echo "build #1: $a"; echo "build #2: $b"
+          [ "$a" = "$b" ] || { echo "::error::the package zip is not reproducible"; exit 1; }
+
+      - name: Sidecar matches the built zip
+        run: |
+          # The site authenticates the package by the sha1 in this file. If the
+          # two ever disagree, the release is unusable and nothing before this
+          # point would have noticed.
+          python3 - <<'PY'
+          import json, hashlib, pathlib, sys
+          meta = json.loads(pathlib.Path('dist/update-package.json').read_text())
+          zip_path = pathlib.Path('dist') / meta['fileName']
+          if not zip_path.exists():
+              sys.exit(f"::error::update-package.json names {meta['fileName']}, which is not in dist/")
+          digest = hashlib.sha1(zip_path.read_bytes()).hexdigest()
+          if digest != meta['sha1']:
+              sys.exit(f"::error::sha1 mismatch: sidecar {meta['sha1']}, zip {digest}")
+          for field in ('name', 'slug', 'version', 'fileName', 'sha1', 'type',
+                        'releaseDate', 'piVersionRange', 'title', 'descriptionHtml'):
+              if not meta.get(field):
+                  sys.exit(f"::error::update-package.json is missing {field}")
+          if meta['type'] != 'script':
+              sys.exit(f"::error::type must be \"script\", got {meta['type']}")
+          import re
+          if not re.fullmatch(r'\d{8}', meta['releaseDate']):
+              sys.exit(f"::error::releaseDate must be YYYYMMDD, got {meta['releaseDate']}")
+          if not re.fullmatch(r'[0-9.]+:[0-9.]+', meta['piVersionRange']):
+              sys.exit(f"::error::piVersionRange is malformed: {meta['piVersionRange']}")
+          # The site strips em dashes and rejects HTML entities XML does not
+          # declare — an undeclared entity makes the whole repository malformed,
+          # so PixInsight drops every CaeloWorks script, not just this one.
+          bad = [e for e in re.findall(r'&[a-zA-Z]+;', meta['descriptionHtml'])
+                 if e not in ('&amp;', '&lt;', '&gt;', '&quot;', '&apos;')]
+          if bad:
+              sys.exit(f"::error::descriptionHtml uses entities XML does not declare: {bad}")
+          if '—' in meta['descriptionHtml']:
+              sys.exit("::error::descriptionHtml contains an em dash, which the site strips")
+          print('update-package.json is consistent with the built zip')
+          PY
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: MosaicToolbox-ci
+          path: dist/*
+
+  hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Shell scripts are sound
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          shellcheck scripts/*.sh tests/run.sh
+
+      - name: The menu icon is well-formed SVG
+        run: python3 -c "import xml.dom.minidom; xml.dom.minidom.parse('pjsr/assets/MosaicToolbox.svg')"
+
+      - name: Every module is reachable from the entry point
+        run: |
+          # An orphan packages fine and then is not there at runtime. The entry
+          # point includes each module with a mosaictoolbox/ prefix.
+          fail=0
+          for f in pjsr/mosaictoolbox/*.js; do
+            base="$(basename "$f")"
+            grep -qhE "#include \"(mosaictoolbox/)?$base\"" pjsr/MosaicToolbox.js pjsr/mosaictoolbox/*.js \
+              || { echo "::error::$base is in mosaictoolbox/ but nothing includes it"; fail=1; }
+          done
+          exit $fail
+
+      - name: Every source file carries its SPDX header
+        run: |
+          fail=0
+          for f in pjsr/MosaicToolbox.js pjsr/mosaictoolbox/*.js; do
+            head -1 "$f" | grep -q 'SPDX-License-Identifier: CC-BY-NC-4.0' \
+              || { echo "::error::$f has no SPDX header"; fail=1; }
+          done
+          exit $fail
+
+      - name: The licence files are present and consistent
+        run: |
+          # NOTICE.md is part of the licence terms, not documentation: the
+          # upstream PCL 2.0 work the astrometry code derives from requires its
+          # notice and acknowledgment to travel with every copy.
+          fail=0
+          for f in LICENSE NOTICE.md; do
+            [ -s "$f" ] || { echo "::error::$f is missing or empty"; fail=1; }
+          done
+          grep -q 'CC BY-NC 4.0' LICENSE || { echo "::error::LICENSE no longer names CC BY-NC 4.0"; fail=1; }
+          grep -q 'Nicolas Godingen' LICENSE || { echo "::error::LICENSE no longer names the author"; fail=1; }
+          grep -q 'PixInsight Class Library License' NOTICE.md || { echo "::error::NOTICE.md no longer records the PCL 2.0 obligation"; fail=1; }
+          grep -q 'based on software from the PixInsight project' NOTICE.md || { echo "::error::NOTICE.md no longer carries the PixInsight acknowledgment"; fail=1; }
+          exit $fail

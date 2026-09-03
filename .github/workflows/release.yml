@@ -1,0 +1,72 @@
+name: Release
+
+# Push a semver tag (e.g. `v2.3.1`) to cut a release: this builds the distribution
+# artifact and publishes it as release assets for the CaeloWorks update site to ingest.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  # The whole of CI, not a subset: the harness, the package contract, the
+  # reproducibility check, the sidecar validator (the guard on the HTML entities
+  # that would make the shared repository index malformed and take every
+  # CaeloWorks script down with it), shellcheck, the SPDX check and the licence
+  # check all run before anything is published.
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Version from tag
+        id: v
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: The tag must be documented
+        run: |
+          # A release whose changes are not written down is a release nobody can
+          # tell apart from the one before it.
+          v="${{ steps.v.outputs.version }}"
+          grep -q "^## \[$v\]" CHANGELOG.md \
+            || { echo "::error::CHANGELOG.md has no [$v] section"; exit 1; }
+
+      - name: Build the distribution artifact
+        run: bash scripts/build-update-package.sh "${{ steps.v.outputs.version }}"
+
+      - name: Contents match the update site's ingest contract
+        run: bash scripts/check-package.sh dist/*.zip
+
+      - name: Publish release + assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "Mosaic Toolbox $GITHUB_REF_NAME" \
+            --generate-notes \
+            dist/*.zip \
+            dist/update-package.json
+
+      - name: Remind the maintainer what is left to do
+        run: |
+          sha1="$(python3 -c "import json;print(json.load(open('dist/update-package.json'))['sha1'])")"
+          {
+            echo "### Published"
+            echo
+            echo "Still to do, by hand:"
+            echo
+            echo "1. Comment on the tracking issue in \`caelo-works/pixinsight-scripts\` with"
+            echo "   this release URL, the sha1 \`$sha1\` and the piVersionRange."
+            echo "2. Re-run \`scripts/build-update-repo.sh\` on the site so the shared"
+            echo "   \`updates.xri\` picks this up."
+            echo "3. Confirm the PixInsight hand gates in \`docs/RELEASING.md\` were run —"
+            echo "   CI cannot see an image, and a mosaic join is judged by eye."
+          } >> "$GITHUB_STEP_SUMMARY"

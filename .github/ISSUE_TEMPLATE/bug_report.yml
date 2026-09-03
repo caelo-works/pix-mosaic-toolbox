@@ -1,0 +1,48 @@
+name: Bug report
+description: Something the script does that it should not
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: input tiles must be **linear**, **plate solved** and
+        **already corrected for gradients** (DBE / ABE / GraXpert / NSG). A
+        gradient across the finished mosaic, or a dark/bright wedge at a join, is
+        usually uncorrected input rather than a bug — see the README's
+        Troubleshooting section first.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you got, what you expected instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Script version
+      description: The line the console prints when the script starts, e.g. 2.3.1.
+    validations:
+      required: true
+  - type: input
+    id: pixinsight
+    attributes:
+      label: PixInsight version and platform
+      placeholder: 1.9.4 — Windows 11
+    validations:
+      required: true
+  - type: input
+    id: layout
+    attributes:
+      label: Mosaic layout
+      description: How many tiles, how many filters, and roughly how they overlap.
+      placeholder: 2×2 tiles, SHO, ~15% overlap
+  - type: textarea
+    id: console
+    attributes:
+      label: Console output
+      description: |
+        The script prints its plan and a full report of every join. Paste the
+        relevant block, including any error or warning — it makes the run
+        reproducible.
+      render: text

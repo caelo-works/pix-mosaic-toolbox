@@ -1,0 +1,22 @@
+name: Feature request
+description: Something the script should do and does not
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to achieve, and where the script gets in the way.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+  - type: textarea
+    id: prior
+    attributes:
+      label: Prior art
+      description: |
+        If another script or process does this, name it. If it is a published
+        method, link it — an implementation from documentation needs a source.
