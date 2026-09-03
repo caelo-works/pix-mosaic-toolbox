@@ -176,7 +176,7 @@ function mtCatalogue()
           "photometrically, rows first and then columns. All channels therefore share " +
           "identical coordinates, field of view and dimensions.</p>" +
           "<p>Inputs must be <i>linear</i>, <i>plate solved</i>, and <i>already corrected for " +
-          "gradients</i> (DBE, ABE, GraXpert, YAGEx, or NormalizeScaleGradient during " +
+          "gradients</i> (YAGEx, DBE, ABE, GraXpert, or NormalizeScaleGradient during " +
           "preprocessing). " +
           "The join matches the tiles to each other; it cannot remove a gradient they share, and " +
           "an uncorrected one in a single tile is carried into the mosaic.</p>" +
@@ -187,7 +187,7 @@ function mtCatalogue()
           "Tous les canaux partagent donc des coordonnées, un champ et des dimensions " +
           "identiques.</p>" +
           "<p>Les images doivent être <i>linéaires</i>, <i>résolues astrométriquement</i> et " +
-          "<i>déjà corrigées de leurs gradients</i> (DBE, ABE, GraXpert, YAGEx ou " +
+          "<i>déjà corrigées de leurs gradients</i> (YAGEx, DBE, ABE, GraXpert ou " +
           "NormalizeScaleGradient au prétraitement). La jonction ajuste les tuiles les unes " +
           "aux autres : elle ne peut pas retirer un gradient qu'elles partagent, et un gradient " +
           "non corrigé dans une seule tuile est reporté dans la mosaïque.</p>" +
