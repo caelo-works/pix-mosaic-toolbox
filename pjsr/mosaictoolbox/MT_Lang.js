@@ -941,7 +941,8 @@ function mtCatalogue()
  * Substitutes %NAME% placeholders in a translated passage.
  *
  * @param {String} key
- * @param {Object} values e.g. { TITLE: "Mosaic Toolbox" }
+ * @param {Object} values e.g. { "TITLE": "Mosaic Toolbox" }. Quote any key whose
+ *        name is a preprocessor #define (TITLE, VERSION), or it will be substituted.
  * @returns {String}
  */
 function mtTv( key, values )

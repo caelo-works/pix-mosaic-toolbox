@@ -38,6 +38,17 @@ is packaging, testing and repository infrastructure.
 - Project documentation: `docs/ARCHITECTURE.md`, `docs/RELEASING.md`,
   `CONTRIBUTING.md`, `LICENSE`, `NOTICE.md`, and issue templates.
 
+### Fixed
+
+- The `%TITLE%` and `%VERSION%` placeholders in the dialog header and in the
+  "no plate-solved image is open" message showed up literally instead of being
+  filled in. The PixInsight preprocessor was substituting its `#define TITLE` /
+  `#define VERSION` macros into the object keys `mtTv` reads (`{ TITLE: … }`
+  became `{ "Mosaic Toolbox": … }`), so the placeholders never matched. The keys
+  are now quoted, and `tests/preprocessor.test.js` guards the whole class of
+  macro/identifier collision — which the node harness could not otherwise see,
+  since it strips `#define` without applying it. (Pre-existing in 2.3.1.)
+
 ### Changed
 
 - The source tree moved under `pjsr/` (entry point plus the `mosaictoolbox/`

@@ -90,7 +90,10 @@ class MosaicToolboxDialog extends Dialog
       title_Label.useRichText = true;
       title_Label.wordWrapping = true;
       title_Label.minWidth = 60 * emWidth;
-      title_Label.text = mtTv( "ui.header", { TITLE: MT_TITLE(), VERSION: MT_VERSION() } );
+      // The keys are quoted so the PixInsight preprocessor does not substitute
+      // its #define'd TITLE / VERSION macros into them, which would rename the
+      // keys and leave the %TITLE% / %VERSION% placeholders unfilled.
+      title_Label.text = mtTv( "ui.header", { "TITLE": MT_TITLE(), "VERSION": MT_VERSION() } );
 
       // =====================================================================
       // Channels
@@ -906,7 +909,7 @@ class MosaicToolboxDialog extends Dialog
       {
          let solved = data.images.filter( im => im.solved ).length;
          if ( solved === 0 )
-            new MessageBox( mtTv( "msg.noSolvedImages", { TITLE: MT_TITLE() } ),
+            new MessageBox( mtTv( "msg.noSolvedImages", { "TITLE": MT_TITLE() } ),
                             MT_TITLE(), StdIcon.Warning, StdButton.Ok ).execute();
          else if ( unsolved > 0 )
             console.warningln( format(
