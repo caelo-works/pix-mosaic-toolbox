@@ -88,7 +88,7 @@ unchanged.
 
 | | |
 |---|---|
-| PixInsight | ≥ 1.9.4 (Lockhart), Windows / macOS / Linux |
+| PixInsight | ≥ 1.9.4 (Lockhart), verified on 1.9.5 · Windows / macOS / Linux |
 | Input images | linear, plate solved, **gradient corrected**, one window per tile per filter |
 
 > **Correct the gradients before you assemble.** YAGEx, DBE, ABE, GraXpert, or

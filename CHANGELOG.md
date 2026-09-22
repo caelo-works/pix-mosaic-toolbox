@@ -11,6 +11,14 @@ maintained and distributed by Caelo Works with the author's agreement. See
 
 ## [Unreleased]
 
+- Verified compatible with **PixInsight 1.9.5** (Lockhart), no code change. 1.9.5
+  moves astrometric solutions to the new XISF `AstrometricSolution` format; Mosaic
+  Toolbox reads them through the standard `pjsr/astrometry/AstrometricMetadata.js`
+  include (`ExtractMetadata`), which reads the new format automatically. Validated
+  by hand on tiles resolved under 1.9.5 and on pre-1.9.5 tiles converted on open.
+  The package remains compliant (no `etc/`, no shipped-library copies) and
+  `piVersionRange` (`1.9.4:1.9.99`) already serves 1.9.5, so no republish is needed.
+
 ## [2.4.0] - 2026-09-03
 
 First Caelo Works distribution of the script. The image-processing engine — the
