@@ -138,7 +138,7 @@ function mtMain()
       engine.dispose();
    }
 
-   // One run per invocation. The source images are untouched, but the workspace
+   // One run per invocation. The source pixels are untouched, but the workspace
    // has changed underneath the table, so re-showing the same selection would be
    // misleading; start the script again to build more.
 }

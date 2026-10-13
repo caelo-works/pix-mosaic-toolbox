@@ -39,18 +39,31 @@ function mtSetIcon( dialog, button, resource, fallbackText )
 }
 
 /**
- * Open a URL with the platform's default handler. The maintainer line in the
- * header is a link, and PJSR has no browser of its own. A header that cannot
- * open a browser is not a reason to stop working.
+ * Open a URL in the system's default web browser.
+ *
+ * This is the script's only use of an external program (CPD Program Rules 5.3,
+ * documented in the README and in the header link's tooltip). It is called from
+ * exactly one place - a click on the "Caelo Works" link in the dialog header -
+ * with the hard-coded MT_PRODUCT_URL(). It never runs on its own.
+ *
+ * The program started is the operating system's own URL handler, launched
+ * directly rather than through a shell interpreter: explorer.exe on Windows,
+ * open on macOS, xdg-open on Linux. Anything but an https URL is refused.
+ * A header that cannot open a browser is not a reason to stop working.
  */
 function mtOpenInBrowser( url )
 {
+   if ( !/^https:\/\/\S+$/.test( url ) )
+   {
+      console.warningln( "Refusing to open a non-https URL: " + url );
+      return;
+   }
    try
    {
       let plat = String( CoreApplication.platform );
       let P = new ExternalProcess;
       if ( /win|mswindows/i.test( plat ) )
-         P.start( "cmd", [ "/c", "start", "", url ] );
+         P.start( "explorer.exe", [ url ] );
       else if ( /mac|osx/i.test( plat ) )
          P.start( "/usr/bin/open", [ url ] );
       else
@@ -186,13 +199,15 @@ class MosaicToolboxDialog extends Dialog
       }
 
       // Version and maintainer. The author's name is deliberately not shown here
-      // (see NOTICE.md); the Caelo Works link is the distribution identity, the
-      // same as the sibling scripts.
+      // (see NOTICE.md). The link is product identification only (CPD rule 6.4):
+      // it opens this script's own page, not the catalogue of other products,
+      // and only when the user clicks it - the tooltip says so.
       let by_Label = new Label( this );
       by_Label.useRichText = true;
       by_Label.textAlignment = TextAlignment.Left | TextAlignment.VertCenter;
       by_Label.text = "v" + MT_VERSION() + " &middot; <a href='#'>Caelo Works</a>";
-      by_Label.onMousePress = function () { mtOpenInBrowser( "https://pixinsight-scripts.caelo.works/" ); };
+      by_Label.toolTip = mtTv( "tip.productLink", { URL: MT_PRODUCT_URL() } );
+      by_Label.onMousePress = function () { mtOpenInBrowser( MT_PRODUCT_URL() ); };
       try { by_Label.cursor = new Cursor( StdCursor_PointingHand ); } catch ( x ) {}
 
       let titleColumn_Sizer = new VerticalSizer;
@@ -926,6 +941,7 @@ class MosaicToolboxDialog extends Dialog
          self.desc_Label.text = mtT( "ui.header" );
          language_Label.text = mtT( "Language:" );
          self.language_ComboBox.toolTip = mtT( "tip.language" );
+         by_Label.toolTip = mtTv( "tip.productLink", { URL: MT_PRODUCT_URL() } );
 
          // Channels
          for ( let f of MT_STANDARD_FILTERS() )

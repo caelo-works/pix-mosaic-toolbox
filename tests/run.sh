@@ -93,6 +93,7 @@ module.exports = {
    // --- globals: identity, filters, stats, identifiers, enums, coords ----
    MT_TITLE: MT_TITLE,
    MT_VERSION: MT_VERSION,
+   MT_PRODUCT_URL: MT_PRODUCT_URL,
    MT_STANDARD_FILTERS: MT_STANDARD_FILTERS,
    MT_UNASSIGNED: MT_UNASSIGNED,
    mtNormaliseFilter: mtNormaliseFilter,
