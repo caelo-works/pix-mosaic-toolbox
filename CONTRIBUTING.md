@@ -71,6 +71,14 @@ every line that starts with `#`. Do not loosen it.
 - **Settings persist.** People keep process settings. A renamed or re-meaning'd
   stored key needs a migration path; settings are written on every close, not
   only on Run.
+- **The privacy section is a contract.** The script is signed code under the
+  [CPD Program Rules](https://pixinsight.com/security/cpd-rules/). It makes no
+  network connection, writes no file, and starts exactly one external program —
+  the OS URL handler, on a click of the header link, to open the product page.
+  Anything that changes one of those facts (a download, a file written, another
+  program launched) must update the README section *Privacy, network and external
+  programs* and `tests/cpd.test.js` in the same change. The header link points to
+  this script's own page, never to the catalogue of other products (rule 6.4).
 - **No name in the interface.** The credit lives in the file header, `NOTICE.md`
   and the README — where the licences that require it are satisfied — and nowhere
   on screen. This is the author's own wish.

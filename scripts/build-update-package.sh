@@ -59,9 +59,9 @@ cp "$REPO/pjsr/assets/$NAME.svg" "$STAGE/rsc/icons/script/$NAME/$NAME.svg"
 # 3) OPTIONAL code signature — DISABLED by default. Enabled only when XSSK_PATH points
 #    to the CaeloWorks signing keys (.xssk) and PI_EXE to a PixInsight executable.
 #    Signs ONLY the entry script into <NAME>.xsgn. Entitlements [].
-#    Leave OFF until the CaeloWorks CPD identity is distributed by Pleiades: an
-#    unverifiable signature is WORSE than none, and the site's ingest refuses a zip
-#    containing a .xsgn while CPD_PUBLISHED is false.
+#    Local tool only: CI and the release workflow never set XSSK_PATH. Signing of
+#    published CaeloWorks artifacts is handled by a separate signing process outside
+#    this repository, and check-package.sh still expects no .xsgn in this zip.
 SIGNED=0
 if [ -n "${XSSK_PATH:-}" ]; then
   [ -f "$XSSK_PATH" ] || { echo "error: XSSK_PATH not found: $XSSK_PATH" >&2; exit 1; }
@@ -130,5 +130,5 @@ echo "dist/update-package.json"
 if [ "$SIGNED" = 1 ]; then
   echo "  code signature: $NAME.xsgn INCLUDED (signed; zip not reproducible — sha1 is per-signing)"
 else
-  echo "  code signature: package NOT SIGNED (CPD identity pending validation)"
+  echo "  code signature: none in this zip (signing is done by the separate CaeloWorks signing process)"
 fi

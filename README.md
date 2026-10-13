@@ -4,7 +4,7 @@
 
 ### Several filters of a mosaic, assembled onto one common grid in a single run
 
-[![Version](https://img.shields.io/badge/version-2.4.0-22d3ee?style=for-the-badge&labelColor=0f172a)](https://github.com/caelo-works/pix-mosaic-toolbox/releases/latest)
+[![Version](https://img.shields.io/badge/version-2.4.1-22d3ee?style=for-the-badge&labelColor=0f172a)](https://github.com/caelo-works/pix-mosaic-toolbox/releases/latest)
 [![PixInsight](https://img.shields.io/badge/PixInsight-%E2%89%A5%201.9.4-67e8f9?style=for-the-badge&labelColor=0f172a)](https://pixinsight.com/)
 [![Status](https://img.shields.io/badge/status-stable-34d399?style=for-the-badge&labelColor=0f172a)](https://pixinsight-scripts.caelo.works/en/scripts/pix-mosaic-toolbox)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-94a3b8?style=for-the-badge&labelColor=0f172a)](LICENSE)
@@ -59,9 +59,11 @@ You still run `ImageSolver` yourself (step 1).
 ## Platforms
 
 Windows, macOS and Linux, from the same files. PixInsight runs the same
-JavaScript engine on all three and this script touches nothing outside it — no
+JavaScript engine on all three and the processing touches nothing outside it — no
 files, no shell, no OS paths — so there is no port to do and no per-platform
-build. Install it the same way everywhere.
+build. Install it the same way everywhere. The one platform-specific line is the
+header link, which opens the product page with each system's own URL handler
+(see [Privacy, network and external programs](#privacy-network-and-external-programs)).
 
 What *is* handled explicitly, because it genuinely differs:
 
@@ -118,8 +120,8 @@ Updates then arrive on their own, along with every other CaeloWorks script.
 2. **Add** `https://pixinsight-scripts.caelo.works/update/`.
 3. **Resources → Updates → Check for Updates**, then restart PixInsight.
 
-The repository is not yet signed with a Certified PixInsight Developer identity, so PixInsight
-warns that it is unsigned. That is expected, and affects every CaeloWorks script equally.
+The repository is signed with the Caelo Works Certified PixInsight Developer identity, so
+PixInsight verifies where the updates come from and that they have not been altered.
 
 ### From a release
 
@@ -358,10 +360,13 @@ a specific canvas — for example to match an existing mosaic.
 * Zero means "no data" throughout the pipeline. A corrected pixel that would
   fall below zero is clipped to a tiny positive value rather than to zero, so it
   stays part of the mosaic's coverage; the console reports how many.
-* The script never modifies your source windows. It only reads them.
+* The script never modifies the pixel data of your source windows. The one thing
+  it may do to them is have PixInsight rebuild a plate solution that is present
+  only as header keywords (see below).
 * Colour (RGB) tiles work — each channel is scaled and corrected independently.
   Filter detection is aimed at mono-per-filter data, so assign a channel by hand.
-* Settings persist under the `MosaicToolbox/` settings key.
+* Settings persist under the `MosaicToolbox/` settings key — see
+  [Privacy, network and external programs](#privacy-network-and-external-programs).
 
 ### How this compares to PhotometricMosaic
 
@@ -373,6 +378,31 @@ Toolbox deliberately does not reproduce any of that; it is built for the
 unattended multi-filter case, and reports through the console instead. The two
 implementations are independent, so their results will differ in detail. None of
 PhotometricMosaic's code is used, copied or required here.
+
+---
+
+## Privacy, network and external programs
+
+Everything Mosaic Toolbox does outside its own computations, stated in full:
+
+* **Network.** The script makes no network connection and downloads nothing.
+* **External programs.** The only program it can start is your operating system's
+  own URL handler — `explorer.exe` on Windows, `open` on macOS, `xdg-open` on
+  Linux — and only when you click the **Caelo Works** link in the dialog header.
+  It opens the product page,
+  <https://pixinsight-scripts.caelo.works/scripts/pix-mosaic-toolbox>, in your
+  default web browser. The address is fixed in the script; nothing else is ever
+  launched, and nothing is launched at any other time. The link's tooltip says
+  the same thing.
+* **Storage.** Your choices are kept in the PixInsight settings, under the
+  `MosaicToolbox/` key, through PixInsight's own settings interface. The script
+  writes no file to disk: the mosaics stay in PixInsight windows until you save
+  them yourself, and the FITS keywords and astrometric solution it writes go only
+  on those output windows. The pixel data of your source images is never
+  modified. If a source window carries its plate solution only as header
+  keywords, pressing **Run** asks PixInsight to rebuild that solution from them —
+  the same operation the core astrometry tools perform.
+* **Data.** No telemetry, no usage tracking, no personal data collected or sent.
 
 ---
 

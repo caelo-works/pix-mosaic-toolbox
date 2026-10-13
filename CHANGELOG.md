@@ -11,13 +11,50 @@ maintained and distributed by Caelo Works with the author's agreement. See
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-10-13
+
+Compliance with the
+[CPD Program Rules v1.0](https://pixinsight.com/security/cpd-rules/) published by
+Pleiades Astrophoto. No change to the image processing: an assembled mosaic is
+identical to 2.4.0's.
+
+### Changed
+
+- The **Caelo Works** link in the dialog header now opens this script's own page,
+  <https://pixinsight-scripts.caelo.works/scripts/pix-mosaic-toolbox>, instead of
+  the catalogue home page, so it stays product identification (rule 6.4). The
+  address is a hard-coded https constant, and anything but https is refused.
+- On Windows the link opens the browser with `explorer.exe` directly instead of
+  going through the `cmd` shell. macOS (`open`) and Linux (`xdg-open`) unchanged.
+- The link has a tooltip (English and French) saying that it opens the product
+  page in the default browser and that it is the only program the script ever
+  starts (rule 5.3).
+
+### Documentation
+
+- New README section *Privacy, network and external programs* (rule 6.1): no
+  network connection, the single external-program launch and when it happens,
+  the `MosaicToolbox/` settings key, no file written to disk, no telemetry.
+- The README now states accurately what happens to source windows: their pixels
+  are never modified, and a plate solution present only as header keywords is
+  rebuilt by PixInsight when you press Run. The previous "never modifies your
+  source windows" was too strong.
+- The statements that the CaeloWorks repository is unsigned are gone: Caelo Works
+  is a Certified PixInsight Developer, and signing is handled by a separate
+  process outside this repository (README, `docs/RELEASING.md`,
+  `scripts/build-update-package.sh`). `docs/RELEASING.md` gains a CPD Program
+  Rules checklist and a hand gate for the header link.
 - Verified compatible with **PixInsight 1.9.5** (Lockhart), no code change. 1.9.5
   moves astrometric solutions to the new XISF `AstrometricSolution` format; Mosaic
   Toolbox reads them through the standard `pjsr/astrometry/AstrometricMetadata.js`
   include (`ExtractMetadata`), which reads the new format automatically. Validated
   by hand on tiles resolved under 1.9.5 and on pre-1.9.5 tiles converted on open.
-  The package remains compliant (no `etc/`, no shipped-library copies) and
-  `piVersionRange` (`1.9.4:1.9.99`) already serves 1.9.5, so no republish is needed.
+
+### Tests
+
+- `tests/cpd.test.js` holds the documented external-program surface: one
+  `ExternalProcess`, in `mtOpenInBrowser`, no shell interpreter, called only with
+  the product URL. 144 assertions across ten suites.
 
 ## [2.4.0] - 2026-09-03
 
@@ -99,5 +136,6 @@ Interface, tooltips, console output and messages in English and French.
 Self-contained: no other mosaic script required. The astrometric grid derives
 from MosaicByCoordinates under the PixInsight Class Library License 2.0.
 
-[Unreleased]: https://github.com/caelo-works/pix-mosaic-toolbox/compare/v2.4.0...HEAD
+[Unreleased]: https://github.com/caelo-works/pix-mosaic-toolbox/compare/v2.4.1...HEAD
+[2.4.1]: https://github.com/caelo-works/pix-mosaic-toolbox/releases/tag/v2.4.1
 [2.4.0]: https://github.com/caelo-works/pix-mosaic-toolbox/releases/tag/v2.4.0

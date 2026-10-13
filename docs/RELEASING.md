@@ -34,6 +34,10 @@
    - **French.** Switch the language to French, confirm the dialog, tooltips and
      console output are translated and that the table and settings survive the
      restart. FITS `HISTORY` stays in English by design.
+   - **Header link.** Hover the **Caelo Works** link: the tooltip says it opens
+     the product page in the browser. Click it: the product page opens in the
+     default browser (Windows, macOS, Linux where available), and nothing else is
+     launched at any other point of the run.
    - **Clean console.** Read the log end to end and explain every warning.
 
 3. Update `CHANGELOG.md` — move `[Unreleased]` into a `[X.Y.Z]` section dated
@@ -92,9 +96,27 @@ mosaic has not been validated at all.
 
 ## Code signing
 
-Off, deliberately. `build-update-package.sh` signs only when `XSSK_PATH` is set,
-and the site's ingest **refuses** any zip containing a `.xsgn` while the
-CaeloWorks CPD identity is not published: a signature made with a local identity
-is rejected on every other machine, which is worse than no signature. Until then
-PixInsight shows an "unsigned repository" warning on the shared repository, which
-is expected and affects every CaeloWorks script equally.
+Caelo Works is a Certified PixInsight Developer, and the CaeloWorks update
+repository is signed with that identity. Signing is **not** part of this
+repository's release flow: it is handled by a separate signing process on the
+CaeloWorks side, outside this repository. The release workflow
+here produces the unsigned zip and its sidecar; `check-package.sh` still expects
+no `.xsgn` in that zip, and any change to that contract belongs to the signing
+process, not to this repository. The optional `XSSK_PATH` branch of
+`build-update-package.sh` is a local tool only and is not used by CI.
+
+## CPD Program Rules
+
+Signed code is bound by the
+[CPD Program Rules](https://pixinsight.com/security/cpd-rules/). For this script
+that means, at every release:
+
+- the README section *Privacy, network and external programs* must still
+  describe exactly what the code does (rule 6.1): no network, the single
+  external-program launch (the header link), the settings key, no file written;
+- the header link stays product identification (rule 6.4): it points to the
+  script's own page, never to the catalogue of other products;
+- the update package deploys only to the directories of the Update Repository
+  Reference (rule 4.2: here `src/scripts/` and `rsc/icons/`).
+
+`tests/cpd.test.js` holds the code side of the first two points.
