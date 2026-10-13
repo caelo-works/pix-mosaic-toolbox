@@ -4,7 +4,7 @@
 
 ### Several filters of a mosaic, assembled onto one common grid in a single run
 
-[![Version](https://img.shields.io/badge/version-2.4.1-22d3ee?style=for-the-badge&labelColor=0f172a)](https://github.com/caelo-works/pix-mosaic-toolbox/releases/latest)
+[![Version](https://img.shields.io/badge/version-2.4.2-22d3ee?style=for-the-badge&labelColor=0f172a)](https://github.com/caelo-works/pix-mosaic-toolbox/releases/latest)
 [![PixInsight](https://img.shields.io/badge/PixInsight-%E2%89%A5%201.9.4-67e8f9?style=for-the-badge&labelColor=0f172a)](https://pixinsight.com/)
 [![Status](https://img.shields.io/badge/status-stable-34d399?style=for-the-badge&labelColor=0f172a)](https://pixinsight-scripts.caelo.works/en/scripts/pix-mosaic-toolbox)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-94a3b8?style=for-the-badge&labelColor=0f172a)](LICENSE)
@@ -389,9 +389,10 @@ Everything Mosaic Toolbox does outside its own computations, stated in full:
 * **External programs.** The only program it can start is your operating system's
   own URL handler — `explorer.exe` on Windows, `open` on macOS, `xdg-open` on
   Linux — and only when you click the **Caelo Works** link in the dialog header.
-  It opens the product page,
-  <https://pixinsight-scripts.caelo.works/scripts/pix-mosaic-toolbox>, in your
-  default web browser. The address is fixed in the script; nothing else is ever
+  It opens the product page in your default web browser, in the interface
+  language: <https://pixinsight-scripts.caelo.works/en/scripts/pix-mosaic-toolbox>
+  in English, <https://pixinsight-scripts.caelo.works/scripts/pix-mosaic-toolbox>
+  in French. Both addresses are fixed in the script; nothing else is ever
   launched, and nothing is launched at any other time. The link's tooltip says
   the same thing.
 * **Storage.** Your choices are kept in the PixInsight settings, under the

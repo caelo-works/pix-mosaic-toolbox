@@ -11,6 +11,16 @@ maintained and distributed by Caelo Works with the author's agreement. See
 
 ## [Unreleased]
 
+## [2.4.2] - 2026-10-13
+
+### Changed
+
+- The **Caelo Works** header link follows the interface language: the English
+  product page (`/en/scripts/pix-mosaic-toolbox`) in English, the French one
+  (`/scripts/pix-mosaic-toolbox`) in French. The address is read at click time,
+  so it follows a language switch, and the tooltip shows the one that will open.
+  Both are hard-coded https constants; `tests/cpd.test.js` checks each.
+
 ## [2.4.1] - 2026-10-13
 
 Compliance with the
@@ -136,6 +146,7 @@ Interface, tooltips, console output and messages in English and French.
 Self-contained: no other mosaic script required. The astrometric grid derives
 from MosaicByCoordinates under the PixInsight Class Library License 2.0.
 
-[Unreleased]: https://github.com/caelo-works/pix-mosaic-toolbox/compare/v2.4.1...HEAD
+[Unreleased]: https://github.com/caelo-works/pix-mosaic-toolbox/compare/v2.4.2...HEAD
+[2.4.2]: https://github.com/caelo-works/pix-mosaic-toolbox/releases/tag/v2.4.2
 [2.4.1]: https://github.com/caelo-works/pix-mosaic-toolbox/releases/tag/v2.4.1
 [2.4.0]: https://github.com/caelo-works/pix-mosaic-toolbox/releases/tag/v2.4.0

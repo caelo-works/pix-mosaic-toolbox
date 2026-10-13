@@ -44,8 +44,21 @@ ok( calls.length >= 1, 'mtOpenInBrowser() is called somewhere (the header link)'
 eq( calls.filter( c => !/MT_PRODUCT_URL\(\s*\)/.test( c ) ).length, 0,
     'mtOpenInBrowser() is only ever called with MT_PRODUCT_URL()' );
 
-const url = M.MT_PRODUCT_URL();
-ok( /^https:\/\//.test( url ), 'the product URL is https' );
-ok( /\/scripts\/pix-mosaic-toolbox$/.test( url ), 'the product URL is the script\'s own page, not the catalogue' );
+// The product page follows the interface language: French at the site root,
+// English under /en/. Both must stay https and be this script's own page.
+const PAGE = 'https://pixinsight-scripts.caelo.works';
+M.mtSetLanguage( 'fr' );
+eq( M.MT_PRODUCT_URL(), PAGE + '/scripts/pix-mosaic-toolbox', 'French interface -> the French product page' );
+M.mtSetLanguage( 'en' );
+eq( M.MT_PRODUCT_URL(), PAGE + '/en/scripts/pix-mosaic-toolbox', 'English interface -> the English product page' );
+for ( const lang of [ 'en', 'fr' ] )
+{
+   M.mtSetLanguage( lang );
+   const url = M.MT_PRODUCT_URL();
+   ok( /^https:\/\//.test( url ), 'the product URL is https (' + lang + ')' );
+   ok( /\/scripts\/pix-mosaic-toolbox$/.test( url ),
+       'the product URL is the script\'s own page, not the catalogue (' + lang + ')' );
+}
+M.mtSetLanguage( 'en' );
 
 report( 'cpd' );
