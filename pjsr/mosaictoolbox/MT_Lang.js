@@ -204,6 +204,16 @@ function mtCatalogue()
           "d'images et vos réglages sont conservés.</p>"
    },
 
+   "tip.productLink":
+   {
+      en: "<p>Opens this script's page, <i>%URL%</i>, in your default web browser. This " +
+          "is the only program the script ever starts, and only when you click here. The " +
+          "script makes no network connection itself.</p>",
+      fr: "<p>Ouvre la page de ce script, <i>%URL%</i>, dans votre navigateur web par " +
+          "défaut. C'est le seul programme que le script lance, et uniquement quand vous " +
+          "cliquez ici. Le script n'établit lui-même aucune connexion réseau.</p>"
+   },
+
    "tip.filter":
    {
       en: "<p>Assemble the <b>%LABEL%</b> channel. Output: <i>%ID%</i></p>",
