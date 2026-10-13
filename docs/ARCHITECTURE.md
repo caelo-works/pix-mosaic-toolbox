@@ -43,6 +43,7 @@ What is tested is the pure-logic layer:
 | Suite | What it holds still |
 |---|---|
 | `strings` | The two catalogues carry the same keys, the printf placeholders match in order between languages, and `mtT`/`mtTv` fall back and substitute correctly |
+| `cpd` | The external-program surface the README documents (CPD rule 5.3): one `ExternalProcess`, in `mtOpenInBrowser`, no shell, called only with the hard-coded https product URL |
 | `i18n` | Every `mtT`/`mtTv` key used in the source (direct, concatenated or in a ternary) exists in the catalogue, and no tooltip is a hard-coded string |
 | `filters` | `FILTER` keyword → channel key: exact aliases beat prefixes, longest prefix wins |
 | `statistics` | `mtMedian`/`mtMAD`/`mtMean` on partial fills and typed arrays, the 1.4826 MAD scaling |
