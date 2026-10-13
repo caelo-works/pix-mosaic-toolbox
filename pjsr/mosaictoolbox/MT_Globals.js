@@ -8,9 +8,16 @@
 function MT_TITLE()   { return "Mosaic Toolbox"; }
 function MT_VERSION() { return "__BUILD__"; }
 
-/** The product's own page. A hard-coded https constant: the header link is the
- *  only place that opens it, and only on an explicit click (see mtOpenInBrowser). */
-function MT_PRODUCT_URL() { return "https://pixinsight-scripts.caelo.works/scripts/pix-mosaic-toolbox"; }
+/** The product's own page, in the interface language: the site serves French at
+ *  the root and English under /en/. Two hard-coded https constants: the header
+ *  link is the only place that opens one, and only on an explicit click (see
+ *  mtOpenInBrowser). Read at click time, so it follows a language switch. */
+function MT_PRODUCT_URL()
+{
+   return (mtLanguage() === "fr")
+          ? "https://pixinsight-scripts.caelo.works/scripts/pix-mosaic-toolbox"
+          : "https://pixinsight-scripts.caelo.works/en/scripts/pix-mosaic-toolbox";
+}
 
 /** Written into the FITS history of a trimmed tile. Also recognised by
  *  PhotometricMosaic, so a tile prepared here does not trigger its soft-edge
