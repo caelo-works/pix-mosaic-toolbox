@@ -4,7 +4,7 @@
 
 ### Several filters of a mosaic, assembled onto one common grid in a single run
 
-[![Version](https://img.shields.io/badge/version-2.4.3-22d3ee?style=for-the-badge&labelColor=0f172a)](https://github.com/caelo-works/pix-mosaic-toolbox/releases/latest)
+[![Version](https://img.shields.io/badge/version-2.4.4-22d3ee?style=for-the-badge&labelColor=0f172a)](https://github.com/caelo-works/pix-mosaic-toolbox/releases/latest)
 [![PixInsight](https://img.shields.io/badge/PixInsight-%E2%89%A5%201.9.4-67e8f9?style=for-the-badge&labelColor=0f172a)](https://pixinsight.com/)
 [![Status](https://img.shields.io/badge/status-stable-34d399?style=for-the-badge&labelColor=0f172a)](https://pixinsight-scripts.caelo.works/en/scripts/pix-mosaic-toolbox)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-94a3b8?style=for-the-badge&labelColor=0f172a)](LICENSE)
@@ -76,9 +76,9 @@ What *is* handled explicitly, because it genuinely differs:
   860 logical pixels, so the Run button stays reachable on a 13" laptop.
 * **Case-sensitive filesystems.** The `#include` paths match the real filenames
   exactly, which only Linux would have caught.
-* **Locale.** The astrometric `CRPIX` keywords are written with `toFixed()`
-  rather than a printf `%f`, so a French or German desktop session cannot put a
-  decimal comma into a FITS card.
+* **Locale.** The `RA`/`DEC` centre keywords rewritten after a crop use
+  `toFixed()` rather than a printf `%f`, so a French or German desktop session
+  cannot put a decimal comma into a FITS card.
 
 The one thing you must preserve when installing: keep `MosaicToolbox.js` and the
 `mosaictoolbox/` folder together, with that folder name and the module filenames
@@ -90,7 +90,7 @@ unchanged.
 
 | | |
 |---|---|
-| PixInsight | ≥ 1.9.4 (Lockhart), verified on 1.9.5 · Windows / macOS / Linux |
+| PixInsight | ≥ 1.9.4 (Lockhart), verified on 1.9.5 and 1.9.6 · Windows / macOS / Linux |
 | Input images | linear, plate solved, **gradient corrected**, one window per tile per filter |
 
 > **Correct the gradients before you assemble.** YAGEx, DBE, ABE, GraXpert, or
@@ -215,8 +215,10 @@ nearly the whole grid and every wedge survives.
 The rectangle is computed once from *all* the finished channels together and
 applied to every one of them, so the outputs stay identical in geometry —
 cropping each channel to its own data would undo the single guarantee the common
-grid exists to provide. The astrometric solution is carried through the crop,
-and a failed crop never costs you the mosaics: they are left intact and uncropped
+grid exists to provide. The astrometric solution is carried through the crop:
+on PixInsight 1.9.6 and later the Crop process transforms it, and the script
+checks it against the grid's; on earlier versions the script rebuilds it from the
+grid, shifted by the crop origin. A failed crop never costs you the mosaics: they are left intact and uncropped
 with a message.
 
 With **Auto-stretch the result** ticked (on by default) each finished mosaic gets
@@ -239,7 +241,7 @@ intermediate windows**.
           │
           ▼
    ①  one common grid          resolution = finest of all tiles
-      (MT_Astrometry.js)       rotation   = first tile
+      (MT_Astrometry.js)       rotation   = first tile opened
                                centre     = iteratively optimised over the union
                                size       = smallest canvas holding every tile
           │
@@ -349,6 +351,13 @@ anyone.
 **Common mosaic grid** (collapsed section). Everything is automatic by default.
 Override resolution, rotation, centre, projection or dimensions here if you need
 a specific canvas — for example to match an existing mosaic.
+
+The automatic rotation is that of the **first tile in the image list**, and the
+list follows the order the windows were opened in PixInsight. Opening the same
+tiles in another order can therefore give a grid turned by a fraction of a
+degree, with a slightly different size, centre and crop. Both grids are valid,
+but to reproduce a mosaic exactly, open the tiles in the same order, or set the
+rotation by hand (the console prints the one used under *Common mosaic grid*).
 
 ---
 

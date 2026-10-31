@@ -125,6 +125,7 @@ module.exports = {
    // --- astrometry: the pure pieces --------------------------------------
    mtMTF: mtMTF,
    mtLargestCoveredRect: mtLargestCoveredRect,
+   mtShiftTransform: mtShiftTransform,
 
    // --- engine: layout and join order ------------------------------------
    mtIntersectionArea: mtIntersectionArea,

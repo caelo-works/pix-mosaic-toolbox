@@ -11,7 +11,50 @@ maintained and distributed by Caelo Works with the author's agreement. See
 
 ## [Unreleased]
 
+## [2.4.4] - 2026-10-31
+
+Checked against PixInsight 1.9.6 (build 1713). Two defects fixed, one found on
+1.9.5 and one that 1.9.6 brought out; the image processing itself is unchanged.
+
+**Validation.** Node harness green (166 assertions), shellcheck clean.
+Synthetic headless probe on PixInsight 1.9.5 (build 1702) and 1.9.6 (build
+1713): grid, reprojection, solution regeneration and star detection identical
+across both versions; a cropped mosaic's solution matches the grid's at every
+control point (0.0000") on both crop paths and both versions. Real three-filter
+mosaic (S, H, O, 3 tiles each), autocrop on: 1.9.6 with this version against
+1.9.5 with 2.4.2 gives the same grid, crop, join scales and star counts, pixels
+within 6e-8, and a solution whose reference pixel is the grid centre minus the
+crop origin to 3e-12 px. Return in the output-prefix field checked by hand on
+1.9.6.
+
 ### Fixed
+
+- **Autocrop kept no astrometric solution.** On PixInsight 1.9.4 and 1.9.5 the
+  Crop process deletes the solution of the image it crops, and the script did
+  not rebuild it, so every mosaic cropped by **Autocrop** came out without one.
+  On the fallback path (pixel copy, used when the Crop process cannot be driven)
+  the solution was kept but not moved, so it was off by the crop offset. The
+  crop's solution is now rebuilt from the common grid, shifted by the crop
+  origin; on PixInsight 1.9.6 and later, where Crop transforms the solution
+  itself, Crop's is kept and checked against the grid's (a warning above
+  0.1 px). The console reports which, for every mosaic. **Mosaics autocropped
+  with an earlier version have no astrometric solution (or a shifted one):
+  re-solve them, or assemble them again with this version.** Autocrop is off by
+  default; uncropped mosaics were not affected.
+
+- **Return started a run.** On PixInsight 1.9.6, whose dialogs press their
+  default button on Return, pressing Return in a text field (the output prefix,
+  a channel name) launched the processing, since **Run** was the default
+  button. The dialog no longer has a default button: Return does nothing, and
+  Run takes a click. Earlier PixInsight versions behave as before.
+
+### Documentation
+
+- The README says that the automatic grid rotation is the first opened tile's,
+  so the same tiles opened in another order give a slightly different grid,
+  and how to reproduce a mosaic exactly.
+
+### Release tooling
 
 - `sign-package.sh` kept no leading or trailing space of the key password
   (`read` without `IFS=`). It now also builds and checks the signed zip and
