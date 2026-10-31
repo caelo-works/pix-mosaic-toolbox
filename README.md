@@ -4,7 +4,7 @@
 
 ### Several filters of a mosaic, assembled onto one common grid in a single run
 
-[![Version](https://img.shields.io/badge/version-2.4.3-22d3ee?style=for-the-badge&labelColor=0f172a)](https://github.com/caelo-works/pix-mosaic-toolbox/releases/latest)
+[![Version](https://img.shields.io/badge/version-2.4.4-22d3ee?style=for-the-badge&labelColor=0f172a)](https://github.com/caelo-works/pix-mosaic-toolbox/releases/latest)
 [![PixInsight](https://img.shields.io/badge/PixInsight-%E2%89%A5%201.9.4-67e8f9?style=for-the-badge&labelColor=0f172a)](https://pixinsight.com/)
 [![Status](https://img.shields.io/badge/status-stable-34d399?style=for-the-badge&labelColor=0f172a)](https://pixinsight-scripts.caelo.works/en/scripts/pix-mosaic-toolbox)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-94a3b8?style=for-the-badge&labelColor=0f172a)](LICENSE)
@@ -90,7 +90,7 @@ unchanged.
 
 | | |
 |---|---|
-| PixInsight | ≥ 1.9.4 (Lockhart), verified on 1.9.5 · Windows / macOS / Linux |
+| PixInsight | ≥ 1.9.4 (Lockhart), verified on 1.9.5 and 1.9.6 · Windows / macOS / Linux |
 | Input images | linear, plate solved, **gradient corrected**, one window per tile per filter |
 
 > **Correct the gradients before you assemble.** YAGEx, DBE, ABE, GraXpert, or
