@@ -11,6 +11,17 @@ maintained and distributed by Caelo Works with the author's agreement. See
 
 ## [Unreleased]
 
+### Fixed
+
+- `sign-package.sh` kept no leading or trailing space of the key password
+  (`read` without `IFS=`). It now also builds and checks the signed zip and
+  its sidecar in its work directory, and replaces the originals only once
+  `check-package.sh --signed` and `verify-signature.sh` both pass: a failed
+  run leaves the unsigned package as it was.
+- `check-package.sh` no longer pipes into `grep -q`: under `pipefail`, the
+  writer could die of SIGPIPE after an early match and turn a pass into a
+  failure at random. Listings are captured first.
+
 ## [2.4.3] - 2026-10-31
 
 Signed with the CaeloWorks identity of the Certified PixInsight Developer

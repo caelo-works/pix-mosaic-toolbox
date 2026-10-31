@@ -25,13 +25,16 @@ note() { printf '  ok    %s\n' "$*"; }
 bad()  { printf '  FAIL  %s\n' "$*"; fail=1; }
 
 tree="$( unzip -Z1 "$ZIP" )"
-has() { printf '%s\n' "$tree" | grep -qx "$1"; }
+# Never pipe into grep -q here: grep exits at its first match, the writer can
+# then die of SIGPIPE, and under pipefail a match reads as a failure. Capture
+# first, then grep a here-string.
+has() { grep -qx -- "$1" <<< "$tree"; }
 
 echo "Package contract: $(basename "$ZIP")"
 
 # The site refuses a package whose tree does not extract relative to the
 # PixInsight install directory.
-if printf '%s\n' "$tree" | grep -q '^src/'; then
+if grep -q '^src/' <<< "$tree"; then
    note "extracts relative to the PixInsight install directory"
 else
    bad "no src/... tree: the site's ingest would reject this"
@@ -44,7 +47,7 @@ fi
 # (<pjsr/...>) are not part of the signed code: the core verifies their own
 # signatures. Validity can only be checked by PixInsight itself
 # (verify-signature.sh); this checks the shape and the identity claimed.
-sigs="$( printf '%s\n' "$tree" | grep -i '\.xsgn$' || true )"
+sigs="$( grep -i '\.xsgn$' <<< "$tree" || true )"
 if [ -z "$sigs" ]; then
    if [ "$SIGNED" -eq 1 ]; then
       bad "no code signature: a release must ship $VENDOR/$NAME.xsgn"
@@ -57,8 +60,8 @@ elif [ "$SIGNED" -eq 0 ]; then
 elif [ "$sigs" != "$VENDOR/$NAME.xsgn" ]; then
    bad "the only signature must be $VENDOR/$NAME.xsgn, found:"
    printf '%s\n' "$sigs" | sed 's/^/          /'
-elif ! unzip -p "$ZIP" "$VENDOR/$NAME.xsgn" \
-       | grep -q "<Signature [^>]*scriptId=\"$NAME\"[^>]*developerId=\"CaeloWorks\""; then
+elif ! grep -q "<Signature [^>]*scriptId=\"$NAME\"[^>]*developerId=\"CaeloWorks\"" \
+       <<< "$( unzip -p "$ZIP" "$VENDOR/$NAME.xsgn" )"; then
    bad "$NAME.xsgn is not a CaeloWorks signature of script $NAME"
 else
    note "signed by CaeloWorks ($NAME.xsgn)"
@@ -86,7 +89,10 @@ if has "$VENDOR/NOTICE.md"; then note "NOTICE.md ships with the script"; else ba
 
 # The version stamp has to have been substituted in every .js, or the dialog
 # shows the literal placeholder and no user can report which build they are on.
-if unzip -p "$ZIP" "$VENDOR/$NAME.js" "$VENDOR/$LIBDIR/"'*' 2>/dev/null | grep -q '__BUILD__'; then
+sources="$( unzip -p "$ZIP" "$VENDOR/$NAME.js" "$VENDOR/$LIBDIR/"'*' 2>/dev/null || true )"
+if [ -z "$sources" ]; then
+   bad "could not read the packaged sources to check the version stamp"
+elif grep -q '__BUILD__' <<< "$sources"; then
    bad "the __BUILD__ placeholder was not stamped in every source file"
 else
    note "the version stamp was substituted"
