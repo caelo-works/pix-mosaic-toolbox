@@ -4,7 +4,7 @@
 
 ### Several filters of a mosaic, assembled onto one common grid in a single run
 
-[![Version](https://img.shields.io/badge/version-2.4.2-22d3ee?style=for-the-badge&labelColor=0f172a)](https://github.com/caelo-works/pix-mosaic-toolbox/releases/latest)
+[![Version](https://img.shields.io/badge/version-2.4.3-22d3ee?style=for-the-badge&labelColor=0f172a)](https://github.com/caelo-works/pix-mosaic-toolbox/releases/latest)
 [![PixInsight](https://img.shields.io/badge/PixInsight-%E2%89%A5%201.9.4-67e8f9?style=for-the-badge&labelColor=0f172a)](https://pixinsight.com/)
 [![Status](https://img.shields.io/badge/status-stable-34d399?style=for-the-badge&labelColor=0f172a)](https://pixinsight-scripts.caelo.works/en/scripts/pix-mosaic-toolbox)
 [![License](https://img.shields.io/badge/license-CC%20BY--NC%204.0-94a3b8?style=for-the-badge&labelColor=0f172a)](LICENSE)
@@ -120,8 +120,9 @@ Updates then arrive on their own, along with every other CaeloWorks script.
 2. **Add** `https://pixinsight-scripts.caelo.works/update/`.
 3. **Resources → Updates → Check for Updates**, then restart PixInsight.
 
-The repository is signed with the Caelo Works Certified PixInsight Developer identity, so
-PixInsight verifies where the updates come from and that they have not been altered.
+The script is signed by **CaeloWorks**, a Certified PixInsight Developer, so it runs with
+**Preferences → Security → Allow execution of unsigned scripts** turned off. PixInsight checks the
+signature every time the script starts; a copy whose code has been altered no longer passes.
 
 ### From a release
 
