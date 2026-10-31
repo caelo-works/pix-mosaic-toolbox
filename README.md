@@ -76,9 +76,9 @@ What *is* handled explicitly, because it genuinely differs:
   860 logical pixels, so the Run button stays reachable on a 13" laptop.
 * **Case-sensitive filesystems.** The `#include` paths match the real filenames
   exactly, which only Linux would have caught.
-* **Locale.** The astrometric `CRPIX` keywords are written with `toFixed()`
-  rather than a printf `%f`, so a French or German desktop session cannot put a
-  decimal comma into a FITS card.
+* **Locale.** The `RA`/`DEC` centre keywords rewritten after a crop use
+  `toFixed()` rather than a printf `%f`, so a French or German desktop session
+  cannot put a decimal comma into a FITS card.
 
 The one thing you must preserve when installing: keep `MosaicToolbox.js` and the
 `mosaictoolbox/` folder together, with that folder name and the module filenames
@@ -215,8 +215,10 @@ nearly the whole grid and every wedge survives.
 The rectangle is computed once from *all* the finished channels together and
 applied to every one of them, so the outputs stay identical in geometry —
 cropping each channel to its own data would undo the single guarantee the common
-grid exists to provide. The astrometric solution is carried through the crop,
-and a failed crop never costs you the mosaics: they are left intact and uncropped
+grid exists to provide. The astrometric solution is carried through the crop:
+on PixInsight 1.9.6 and later the Crop process transforms it, and the script
+checks it against the grid's; on earlier versions the script rebuilds it from the
+grid, shifted by the crop origin. A failed crop never costs you the mosaics: they are left intact and uncropped
 with a message.
 
 With **Auto-stretch the result** ticked (on by default) each finished mosaic gets

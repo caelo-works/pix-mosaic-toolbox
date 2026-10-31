@@ -471,8 +471,15 @@ class MosaicToolboxEngine
          let cropped = 0;
          for ( let w of windows )
          {
-            if ( mtApplyCrop( w, rect, method ) )
+            // Every finished mosaic is on the common grid, so the cropped solution
+            // is the grid's, shifted by the crop origin.
+            let solution = mtApplyCrop( w, rect, method, this.grid.referenceMetadata );
+            if ( solution !== null )
             {
+               if ( solution === "kept" )
+                  console.writeln( format( mtT( "  %s: astrometric solution kept by Crop" ), w.mainView.id ) );
+               else if ( solution === "rebuilt" )
+                  console.writeln( format( mtT( "  %s: astrometric solution rebuilt for the crop" ), w.mainView.id ) );
                let keywords = w.keywords;
                keywords.push( new FITSKeyword( "HISTORY", "",
                   format( "%s: autocrop to %d x %d at (%d,%d), fully covered by all channels",

@@ -622,6 +622,10 @@ function mtCatalogue()
       { fr: "Jonction terminée en " },
 
    "Crop method: ":   { fr: "Méthode de rognage : " },
+   "  %s: astrometric solution kept by Crop":
+                      { fr: "  %s : solution astrométrique conservée par Crop" },
+   "  %s: astrometric solution rebuilt for the crop":
+                      { fr: "  %s : solution astrométrique reconstruite pour le rognage" },
    "Basis : %s":      { fr: "Critère : %s" },
    "Crop  : %d x %d px at (%d,%d)  -  was %d x %d, keeping %.1f%%":
       { fr: "Rognage : %d x %d px en (%d,%d)  -  était %d x %d, conserve %.1f%%" },
@@ -913,6 +917,14 @@ function mtCatalogue()
    {
       en: "Warning: screen stretch failed on %s: %s",
       fr: "Avertissement : l'étirement d'affichage a échoué sur %s : %s"
+   },
+
+   "warn.cropSolutionDiffers":
+   {
+      en: "Warning: the astrometric solution Crop kept on %s differs from the grid's by %s px; " +
+          "Crop's is kept.",
+      fr: "Avertissement : la solution astrométrique conservée par Crop sur %s s'écarte de celle " +
+          "de la grille de %s px ; celle de Crop est conservée."
    },
 
    // Warnings that carry no arguments

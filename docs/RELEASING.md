@@ -28,7 +28,10 @@
      they do have and join them, and a genuinely stranded fragment must be
      reported by tile number rather than crashing.
    - **Autocrop and auto-stretch.** With **Autocrop** on, the result has no black
-     border and the astrometric solution survives the crop. With **Auto-stretch**
+     border and the astrometric solution survives the crop: the console says
+     "kept by Crop" (1.9.6+) or "rebuilt for the crop" for every mosaic, and a
+     star's coordinates match before and after (Image Solver not needed: compare
+     a pixel's RA/Dec in the readout before and after). With **Auto-stretch**
      on, every result is visible rather than a black frame, and the pixels are
      unchanged (the mosaics stay linear).
    - **French.** Switch the language to French, confirm the dialog, tooltips and

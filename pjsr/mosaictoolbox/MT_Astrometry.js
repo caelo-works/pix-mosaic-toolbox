@@ -780,11 +780,9 @@ function mtRunCrop( window, rect, method )
 
 /**
  * Crops a window by copying the pixels, for builds where the Crop process
- * cannot be driven at all.
- *
- * The astrometric reference pixel has to be corrected by hand here. FITS counts
- * rows from the BOTTOM while PixInsight counts them from the top, so CRPIX2
- * moves by whatever was removed from the bottom, not from the top.
+ * cannot be driven at all. Pixels only: the astrometric solution is rebuilt
+ * afterwards by mtRestoreCropSolution(), since the one the window still carries
+ * describes the uncropped image.
  *
  * @param {ImageWindow} window
  * @param {Rect} rect
@@ -793,7 +791,6 @@ function mtManualCrop( window, rect )
 {
    let view = window.mainView;
    let image = view.image;
-   const H = image.height;
    const nCh = image.isColor ? 3 : 1;
    const use64 = image.bitsPerSample === 64;
 
@@ -820,21 +817,6 @@ function mtManualCrop( window, rect )
       try
       {
          view.image.assign( cropped );
-
-         // toFixed(), not format("%.6f"): format() is a printf wrapper and its
-         // %f follows the process C locale, which on a French or German desktop
-         // session emits a decimal comma. These two keywords carry the
-         // astrometric reference pixel; a comma here is an invalid FITS card and
-         // a destroyed solution. toFixed() is ECMAScript and always writes '.'.
-         let keywords = view.window.keywords;
-         for ( let k of keywords )
-         {
-            if ( k.name === "CRPIX1" )
-               k.value = (k.numericValue - rect.x0).toFixed( 6 );
-            else if ( k.name === "CRPIX2" )
-               k.value = (k.numericValue - (H - rect.y1)).toFixed( 6 );
-         }
-         view.window.keywords = keywords;
       }
       finally
       {
@@ -845,15 +827,154 @@ function mtManualCrop( window, rect )
    {
       try { cropped.free(); } catch ( x ) { /* released on collection */ }
    }
+}
+
+/** @returns {Number} Largest disagreement, in pixels, tolerated between the
+ *  solution the Crop process kept and the one computed from the grid. */
+function MT_CROP_SOLUTION_TOLERANCE() { return 0.1; }
+
+/**
+ * The image-to-projection transform of a crop. Pixel (x, y) of the crop is
+ * pixel (x + x0, y + y0) of the original image, so the crop's transform is the
+ * original one composed with that translation. Both are 3x3 affine matrices in
+ * PixInsight image coordinates (rows counted from the top), given as arrays of
+ * rows, so the arithmetic can be tested without PixInsight.
+ *
+ * @param {Number[][]} m Original transform
+ * @param {Number} x0 Left edge of the crop in the original image
+ * @param {Number} y0 Top edge of the crop in the original image
+ * @returns {Number[][]} The crop's transform
+ */
+function mtShiftTransform( m, x0, y0 )
+{
+   let r = [];
+   for ( let i = 0; i < 3; ++i )
+      r.push( [ m[i][0], m[i][1], m[i][0]*x0 + m[i][1]*y0 + m[i][2] ] );
+   return r;
+}
+
+/**
+ * The astrometric metadata of a crop of the common grid.
+ *
+ * @param {AstrometricMetadata} reference The grid's (linear) metadata
+ * @param {Rect} rect The crop, in grid pixels
+ * @returns {AstrometricMetadata}
+ */
+function mtCroppedMetadata( reference, rect )
+{
+   let m = reference.ref_I_G_linear;
+   let s = mtShiftTransform( [ [ m[0][0], m[0][1], m[0][2] ],
+                               [ m[1][0], m[1][1], m[1][2] ],
+                               [ m[2][0], m[2][1], m[2][2] ] ],
+                             rect.x0, rect.y0 );
+   let md = reference.Clone();
+   md.ref_I_G = new Matrix( s[0][0], s[0][1], s[0][2],
+                            s[1][0], s[1][1], s[1][2],
+                            s[2][0], s[2][1], s[2][2] );
+   md.ref_I_G_linear = md.ref_I_G;
+   md.ref_G_I = md.ref_I_G.inverse();
+   md.width = rect.width;
+   md.height = rect.height;
+   let centre = md.Convert_I_RD( new Point( rect.width/2, rect.height/2 ), true/*unscaled*/ );
+   if ( centre !== null )
+   {
+      md.ra = centre.x;
+      md.dec = centre.y;
+   }
+   return md;
+}
+
+/**
+ * Largest distance, in pixels, between where the window's own solution and
+ * `md` place the corners and the centre of the image.
+ *
+ * @param {ImageWindow} window
+ * @param {AstrometricMetadata} md
+ * @returns {Number} Infinity when a point cannot be converted.
+ */
+function mtSolutionDisagreement( window, md )
+{
+   let image = window.mainView.image;
+   const W = image.width, H = image.height;
+   let worst = 0;
+   for ( let p of [ [ 0, 0 ], [ W, 0 ], [ 0, H ], [ W, H ], [ W/2, H/2 ] ] )
+   {
+      let rd = window.imageToCelestial( new Point( p[0], p[1] ) );
+      let q = rd ? md.Convert_RD_I( rd, true/*unscaled*/ ) : null;
+      if ( !q )
+         return Infinity;
+      worst = Math.max( worst, Math.sqrt( (q.x - p[0])*(q.x - p[0]) + (q.y - p[1])*(q.y - p[1]) ) );
+   }
+   return worst;
+}
+
+/**
+ * Gives a cropped window the astrometric solution of its crop of the grid.
+ *
+ * Before PixInsight 1.9.6 the Crop process deletes the solution, and the manual
+ * crop leaves the uncropped one in place: both need it rebuilt. From 1.9.6 on,
+ * Crop transforms a linear solution itself; that one is kept, and checked
+ * against ours.
+ *
+ * Only the solution properties are written, as ImageReprojection does, then the
+ * core regenerates the solution from them. AstrometricMetadata.SaveKeywords()
+ * is deliberately not used: it would drop FOCALLEN and XPIXSZ, which the grid
+ * metadata does not carry. The RA/DEC centre keywords are updated by hand.
+ *
+ * @param {ImageWindow} window The cropped window
+ * @param {Rect} rect The crop, in grid pixels
+ * @param {AstrometricMetadata} reference The grid's metadata
+ * @param {Boolean} cropProcess True if the Crop process did the crop
+ * @returns {String} "kept", "rebuilt" or "failed"
+ */
+function mtRestoreCropSolution( window, rect, reference, cropProcess )
+{
+   let view = window.mainView;
+   let md = mtCroppedMetadata( reference, rect );
+
+   if ( cropProcess && window.hasAstrometricSolution )
+   {
+      let offset = Infinity;
+      try { offset = mtSolutionDisagreement( window, md ); } catch ( x ) { /* reported below */ }
+      if ( !(offset <= MT_CROP_SOLUTION_TOLERANCE()) )
+         console.warningln( format( mtT( "warn.cropSolutionDiffers" ), view.fullId,
+                                    isFinite( offset ) ? offset.toFixed( 3 ) : "?" ) );
+      return "kept";
+   }
 
    try
    {
+      view.beginProcess( UndoFlag.NoSwapFile );
+      try
+      {
+         md.SaveProperties( window );
+         // toFixed(), not format("%f"): format() follows the process C locale,
+         // which writes a decimal comma on a French or German desktop session,
+         // and a comma is an invalid FITS card. toFixed() always writes '.'.
+         let keywords = window.keywords;
+         for ( let k of keywords )
+            if ( k.name === "RA" )
+               k.value = md.ra.toFixed( 10 );
+            else if ( k.name === "DEC" )
+               k.value = md.dec.toFixed( 10 );
+         window.keywords = keywords;
+      }
+      finally
+      {
+         view.endProcess();
+      }
       window.regenerateAstrometricSolution();
    }
    catch ( x )
    {
-      console.warningln( format( mtT( "warn.noSolutionAfterCrop" ), view.fullId ) );
+      // checked just below
    }
+   if ( !window.hasAstrometricSolution )
+   {
+      console.warningln( format( mtT( "warn.noSolutionAfterCrop" ), view.fullId ) );
+      return "failed";
+   }
+   return "rebuilt";
 }
 
 /**
@@ -863,16 +984,21 @@ function mtManualCrop( window, rect )
  * @param {Rect} rect
  * @param {Object|null} method From mtResolveCropMethod(); null forces the
  *        manual pixel copy.
- * @returns {Boolean} True if the window was cropped.
+ * @param {AstrometricMetadata|null} reference The grid's metadata, from which
+ *        the cropped solution is rebuilt when needed. null leaves the solution
+ *        as the crop left it.
+ * @returns {String|null} null if nothing was cropped, else how the solution
+ *          came through: "kept", "rebuilt", "failed" or "untouched".
  */
-function mtApplyCrop( window, rect, method )
+function mtApplyCrop( window, rect, method, reference )
 {
    let image = window.mainView.image;
    if ( rect.x0 <= 0 && rect.y0 <= 0 &&
         rect.x1 >= image.width && rect.y1 >= image.height )
-      return false;
+      return null;
 
-   if ( method !== null && method !== undefined )
+   let cropProcess = method !== null && method !== undefined;
+   if ( cropProcess )
    {
       if ( !mtRunCrop( window, rect, method ) )
          throw new Error( format( mtT( "err.cropFailed" ), window.mainView.fullId ) );
@@ -885,7 +1011,10 @@ function mtApplyCrop( window, rect, method )
       throw new Error( format( mtT( "err.cropWrongSize" ),
                                out.width, out.height, rect.width, rect.height,
                                window.mainView.fullId ) );
-   return true;
+
+   if ( reference === null || reference === undefined )
+      return "untouched";
+   return mtRestoreCropSolution( window, rect, reference, cropProcess );
 }
 
 // ----------------------------------------------------------------------------

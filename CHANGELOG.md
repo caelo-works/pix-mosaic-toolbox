@@ -13,6 +13,19 @@ maintained and distributed by Caelo Works with the author's agreement. See
 
 ### Fixed
 
+- **Autocrop kept no astrometric solution.** On PixInsight 1.9.4 and 1.9.5 the
+  Crop process deletes the solution of the image it crops, and the script did
+  not rebuild it, so every mosaic cropped by **Autocrop** came out without one.
+  On the fallback path (pixel copy, used when the Crop process cannot be driven)
+  the solution was kept but not moved, so it was off by the crop offset. The
+  crop's solution is now rebuilt from the common grid, shifted by the crop
+  origin; on PixInsight 1.9.6 and later, where Crop transforms the solution
+  itself, Crop's is kept and checked against the grid's (a warning above
+  0.1 px). The console reports which, for every mosaic. **Mosaics autocropped
+  with an earlier version have no astrometric solution (or a shifted one):
+  re-solve them, or assemble them again with this version.** Autocrop is off by
+  default; uncropped mosaics were not affected.
+
 - `sign-package.sh` kept no leading or trailing space of the key password
   (`read` without `IFS=`). It now also builds and checks the signed zip and
   its sidecar in its work directory, and replaces the originals only once
