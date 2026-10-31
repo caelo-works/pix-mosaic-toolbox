@@ -90,6 +90,15 @@ class MosaicToolboxDialog extends Dialog
       let self = this;
       this.data = data;
 
+      // Return must never start a run. From PixInsight 1.9.6 on, a dialog in
+      // contained windowing mode (the default there) presses its default button
+      // on Return from any control, including an Edit where Return only means
+      // "done typing" - and Run starts minutes of processing. So no automatic
+      // default button, and Run is not made the default either: Return then does
+      // nothing, and Run takes a click. Before 1.9.6, or off V8, the property
+      // does not exist and this is a harmless expando.
+      this.autoDefaultButton = false;
+
       let emWidth = this.font.width( 'M' );
       // Measured from the translated labels: a fixed English yardstick leaves the
       // French control column stepping in and out of line, since minWidth is a
@@ -860,7 +869,6 @@ class MosaicToolboxDialog extends Dialog
       this.run_Button = new PushButton( this );
       this.run_Button.text = mtT( "Run" );
       mtSetIcon( this, this.run_Button, ":/icons/power.png", null );
-      this.run_Button.defaultButton = true;
       this.run_Button.toolTip = mtT( "tip.run" );
       this.run_Button.onClick = function ()
       {

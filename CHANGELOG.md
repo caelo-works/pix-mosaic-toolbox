@@ -11,6 +11,14 @@ maintained and distributed by Caelo Works with the author's agreement. See
 
 ## [Unreleased]
 
+### Fixed
+
+- **Return started a run.** On PixInsight 1.9.6, whose dialogs press their
+  default button on Return, pressing Return in a text field (the output prefix,
+  a channel name) launched the processing, since **Run** was the default
+  button. The dialog no longer has a default button: Return does nothing, and
+  Run takes a click. Earlier PixInsight versions behave as before.
+
 ### Documentation
 
 - The README says that the automatic grid rotation is the first opened tile's,
