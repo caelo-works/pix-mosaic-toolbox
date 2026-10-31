@@ -74,7 +74,8 @@ SIGN_LIST="$NAME.js"
 if [ -t 0 ]; then
   printf 'PixInsight signing-key password for %s (not stored): ' "$DEVELOPER" >&2
 fi
-read -r -s __PW || true
+# IFS= : without it, read trims leading and trailing spaces from the password.
+IFS= read -r -s __PW || true
 [ -t 0 ] && echo >&2
 [ -n "$__PW" ] || { echo "error: no password given" >&2; exit 1; }
 
@@ -130,22 +131,36 @@ done
 [ "$fail" = 0 ] || exit 1
 rm -f "$WORK/sign.js" "$REPORT"
 
-# Re-zip exactly as the build does, then give the sidecar the new sha1. The zip is
-# replaced only once the signed one exists in full.
-python3 "$REPO/scripts/repro-zip.py" "$WORK/pkg" "$WORK/signed.zip"
-mv "$WORK/signed.zip" "$ZIP"
-SHA1="$( sha1sum "$ZIP" | cut -d' ' -f1 )"
-python3 - "$SIDECAR" "$SHA1" <<'PY'
+# Re-zip exactly as the build does and write the sidecar with the new sha1, both
+# in the work directory. The originals are replaced only once the signed pair has
+# passed check-package.sh --signed and verify-signature.sh: a failed run leaves
+# the unsigned zip and its sidecar exactly as they were.
+OUTDIR="$WORK/out"
+mkdir -p "$OUTDIR"
+NEW_ZIP="$OUTDIR/$( basename "$ZIP" )"
+NEW_SIDECAR="$OUTDIR/update-package.json"
+python3 "$REPO/scripts/repro-zip.py" "$WORK/pkg" "$NEW_ZIP"
+SHA1="$( sha1sum "$NEW_ZIP" | cut -d' ' -f1 )"
+python3 - "$SIDECAR" "$NEW_SIDECAR" "$SHA1" <<'PY'
 import json, sys
-path, sha1 = sys.argv[1], sys.argv[2]
-with open(path) as f:
+src, dst, sha1 = sys.argv[1], sys.argv[2], sys.argv[3]
+with open(src) as f:
     meta = json.load(f)
 meta["sha1"] = sha1
-with open(path, "w") as f:
+with open(dst, "w") as f:
     json.dump(meta, f, indent=2, ensure_ascii=False)
     f.write("\n")
 PY
-echo "$( basename "$ZIP" ) signed by $DEVELOPER - sha1 $SHA1 (update-package.json updated)"
 
-bash "$REPO/scripts/check-package.sh" --signed "$ZIP"
-bash "$REPO/scripts/verify-signature.sh" "$ZIP"
+bash "$REPO/scripts/check-package.sh" --signed "$NEW_ZIP" \
+  || { echo "error: the signed package breaks the contract; nothing replaced" >&2; exit 1; }
+bash "$REPO/scripts/verify-signature.sh" "$NEW_ZIP" \
+  || { echo "error: PixInsight does not accept the signature; nothing replaced" >&2; exit 1; }
+
+# Swap in. The work directory may sit on another filesystem (the Windows %TEMP%),
+# so copy next to each target first, then rename: each file changes in one step.
+cp "$NEW_ZIP" "$ZIP.signing"
+cp "$NEW_SIDECAR" "$SIDECAR.signing"
+mv "$ZIP.signing" "$ZIP"
+mv "$SIDECAR.signing" "$SIDECAR"
+echo "$( basename "$ZIP" ) signed by $DEVELOPER - sha1 $SHA1 (update-package.json updated)"
