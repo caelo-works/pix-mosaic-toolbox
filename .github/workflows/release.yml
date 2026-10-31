@@ -1,7 +1,12 @@
 name: Release
 
-# Push a semver tag (e.g. `v2.3.1`) to cut a release: this builds the distribution
-# artifact and publishes it as release assets for the CaeloWorks update site to ingest.
+# Push a semver tag (e.g. `v2.4.3`): once the full CI passes, this builds the
+# package and opens a DRAFT release carrying it, unsigned. Drafts are invisible
+# to the public and to the update site.
+#
+# The draft is signed, then published, by the CaeloWorks signing run, which CI
+# cannot do (it has neither PixInsight nor the keys): scripts/sign-package.sh on
+# the draft's zip and update-package.json, both uploaded back over the draft's.
 on:
   push:
     tags: ['v*']
@@ -43,30 +48,44 @@ jobs:
         run: bash scripts/build-update-package.sh "${{ steps.v.outputs.version }}"
 
       - name: Contents match the update site's ingest contract
+        # Unsigned at this point; sign-package.sh checks it again, --signed.
         run: bash scripts/check-package.sh dist/*.zip
 
-      - name: Publish release + assets
+      - name: Open the draft release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
+            --draft \
+            --verify-tag \
             --title "Mosaic Toolbox $GITHUB_REF_NAME" \
             --generate-notes \
             dist/*.zip \
             dist/update-package.json
 
-      - name: Remind the maintainer what is left to do
+      - name: Say what is left to do
         run: |
+          v="${{ steps.v.outputs.version }}"
           sha1="$(python3 -c "import json;print(json.load(open('dist/update-package.json'))['sha1'])")"
           {
-            echo "### Published"
+            echo "### Draft opened for $GITHUB_REF_NAME, UNSIGNED - do not publish it as is"
             echo
-            echo "Still to do, by hand:"
+            echo "Nothing is public yet. Unsigned zip sha1: \`$sha1\` (it changes when signed)."
             echo
-            echo "1. Comment on the tracking issue in \`caelo-works/pixinsight-scripts\` with"
-            echo "   this release URL, the sha1 \`$sha1\` and the piVersionRange."
-            echo "2. Re-run \`scripts/build-update-repo.sh\` on the site so the shared"
-            echo "   \`updates.xri\` picks this up."
-            echo "3. Confirm the PixInsight hand gates in \`docs/RELEASING.md\` were run —"
-            echo "   CI cannot see an image, and a mosaic join is judged by eye."
+            echo "The draft is published only after it has been signed, from a machine with"
+            echo "PixInsight and the CaeloWorks keys, in this order:"
+            echo
+            echo '```'
+            echo "# 1. sign (fails, and changes nothing, unless the signature verifies)"
+            echo "gh release download $GITHUB_REF_NAME -R $GITHUB_REPOSITORY -D dist"
+            echo "XSSK_PATH=/path/to/caeloworks.xssk scripts/sign-package.sh dist/MosaicToolbox-$v.zip"
+            echo "# 2. replace the draft's assets with the signed ones"
+            echo "gh release upload $GITHUB_REF_NAME -R $GITHUB_REPOSITORY --clobber dist/MosaicToolbox-$v.zip dist/update-package.json"
+            echo "# 3. only once 1 and 2 succeeded: publish"
+            echo "gh release edit $GITHUB_REF_NAME -R $GITHUB_REPOSITORY --draft=false"
+            echo '```'
+            echo
+            echo "Then run the PixInsight hand gates in \`docs/RELEASING.md\` (a mosaic join is"
+            echo "judged by eye) and give the site the sha1 from the SIGNED update-package.json:"
+            echo "a signed zip is not reproducible."
           } >> "$GITHUB_STEP_SUMMARY"

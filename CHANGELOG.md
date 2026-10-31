@@ -11,6 +11,49 @@ maintained and distributed by Caelo Works with the author's agreement. See
 
 ## [Unreleased]
 
+## [2.4.3] - 2026-10-31
+
+Signed with the CaeloWorks identity of the Certified PixInsight Developer
+program, as the PixInsight Development Team asked under rule 5.1 of the CPD
+Program Rules. **No pixel moves**: nothing in `pjsr/` is touched, so an
+assembled mosaic is identical to 2.4.2's.
+
+**Validation.** Node harness green (148 assertions), shellcheck clean. The
+unsigned 2.4.3 zip is byte-identical to what the 2.4.2 build scripts produce
+from the same sources (`check-package.sh` PASS, reproducible).
+`check-package.sh --signed` rejects a missing signature, a second `.xsgn` and a
+signature claiming another developer. The signed package is checked with
+unsigned scripts disallowed once it has been signed.
+
+### Added
+
+- `MosaicToolbox.xsgn`, the code signature of the entry script. It covers every
+  file the entry script includes from `mosaictoolbox/`, so those files carry
+  none of their own; PixInsight's documentation advises against signing them,
+  and refuses to. The platform includes (`StarDetector.jsh`, `astrometry/…`) are
+  PixInsight's own signed code and are not part of ours. The script now runs
+  with *Allow execution of unsigned scripts* turned off.
+- `scripts/sign-package.sh`: signs a built zip in place, re-zips it the way the
+  build does, writes the new sha1 into `update-package.json`, and checks the
+  result. `scripts/verify-signature.sh` asks PixInsight whether a package's
+  signature is valid, on the files as the zip carries them, and needs no key.
+  `scripts/pi-run.sh` drives a headless PixInsight, including a Windows one
+  from WSL.
+
+### Changed
+
+- A tag now opens a **draft** release. It is published only once the package is
+  signed, which CI cannot do, having neither PixInsight nor the keys.
+- `build-update-package.sh` no longer has a signing branch (it had never been
+  used): the signature is made on the zip, after the version stamp. Its zip
+  writer moved to `scripts/repro-zip.py`, shared with `sign-package.sh` so the
+  signed zip is laid out like the unsigned one.
+- `check-package.sh --signed` requires exactly one signature, the entry
+  script's, claiming CaeloWorks. Without the flag it checks a development build
+  and refuses any signature.
+- A release zip is no longer reproducible: the signature carries a timestamp.
+  CI still checks reproducibility on the unsigned build.
+
 ## [2.4.2] - 2026-10-13
 
 ### Changed

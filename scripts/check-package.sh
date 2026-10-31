@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 #
-# check-package.sh <zip>
+# check-package.sh [--signed] <zip>
+#
+#   --signed   the package is a release: it must carry the CaeloWorks code
+#              signature. Without it the package is checked as a development
+#              build (CI has neither PixInsight nor the keys, so cannot sign).
 #
 # Verifies a built package against the contract the CaeloWorks update site
 # enforces on ingest (scripts/build-update-repo.sh in caelo-works/pixinsight-scripts),
@@ -9,7 +13,9 @@
 #
 set -euo pipefail
 
-ZIP="${1:?usage: check-package.sh <zip>}"
+SIGNED=0
+if [ "${1:-}" = "--signed" ]; then SIGNED=1; shift; fi
+ZIP="${1:?usage: check-package.sh [--signed] <zip>}"
 NAME="MosaicToolbox"
 LIBDIR="mosaictoolbox"
 VENDOR="src/scripts/CaeloWorks/$NAME"
@@ -31,12 +37,31 @@ else
    bad "no src/... tree: the site's ingest would reject this"
 fi
 
-# The site refuses any signed artifact while the CaeloWorks CPD identity is not
-# published, because a locally signed binary is rejected on every other machine.
-if printf '%s\n' "$tree" | grep -qi '\.xsgn$'; then
-   bad "contains a code signature: the site's ingest would reject this"
+# Code signature (CPD Program Rules, rule 5.1). Exactly one, for the entry
+# script: its signature covers every file the entry #includes from
+# mosaictoolbox/, and a signature on any other file is never verified -
+# PixInsight's documentation calls that misleading. The platform includes
+# (<pjsr/...>) are not part of the signed code: the core verifies their own
+# signatures. Validity can only be checked by PixInsight itself
+# (verify-signature.sh); this checks the shape and the identity claimed.
+sigs="$( printf '%s\n' "$tree" | grep -i '\.xsgn$' || true )"
+if [ -z "$sigs" ]; then
+   if [ "$SIGNED" -eq 1 ]; then
+      bad "no code signature: a release must ship $VENDOR/$NAME.xsgn"
+   else
+      note "unsigned: a development build, not a release"
+   fi
+elif [ "$SIGNED" -eq 0 ]; then
+   bad "a development build must carry no signature, found:"
+   printf '%s\n' "$sigs" | sed 's/^/          /'
+elif [ "$sigs" != "$VENDOR/$NAME.xsgn" ]; then
+   bad "the only signature must be $VENDOR/$NAME.xsgn, found:"
+   printf '%s\n' "$sigs" | sed 's/^/          /'
+elif ! unzip -p "$ZIP" "$VENDOR/$NAME.xsgn" \
+       | grep -q "<Signature [^>]*scriptId=\"$NAME\"[^>]*developerId=\"CaeloWorks\""; then
+   bad "$NAME.xsgn is not a CaeloWorks signature of script $NAME"
 else
-   note "carries no code signature"
+   note "signed by CaeloWorks ($NAME.xsgn)"
 fi
 
 # Everything the script needs at runtime: the entry point and every module.
