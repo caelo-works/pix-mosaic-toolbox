@@ -11,6 +11,12 @@ maintained and distributed by Caelo Works with the author's agreement. See
 
 ## [Unreleased]
 
+### Documentation
+
+- The README says that the automatic grid rotation is the first opened tile's,
+  so the same tiles opened in another order give a slightly different grid,
+  and how to reproduce a mosaic exactly.
+
 ### Fixed
 
 - **Autocrop kept no astrometric solution.** On PixInsight 1.9.4 and 1.9.5 the

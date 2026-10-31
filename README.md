@@ -241,7 +241,7 @@ intermediate windows**.
           │
           ▼
    ①  one common grid          resolution = finest of all tiles
-      (MT_Astrometry.js)       rotation   = first tile
+      (MT_Astrometry.js)       rotation   = first tile opened
                                centre     = iteratively optimised over the union
                                size       = smallest canvas holding every tile
           │
@@ -351,6 +351,13 @@ anyone.
 **Common mosaic grid** (collapsed section). Everything is automatic by default.
 Override resolution, rotation, centre, projection or dimensions here if you need
 a specific canvas — for example to match an existing mosaic.
+
+The automatic rotation is that of the **first tile in the image list**, and the
+list follows the order the windows were opened in PixInsight. Opening the same
+tiles in another order can therefore give a grid turned by a fraction of a
+degree, with a slightly different size, centre and crop. Both grids are valid,
+but to reproduce a mosaic exactly, open the tiles in the same order, or set the
+rotation by hand (the console prints the one used under *Common mosaic grid*).
 
 ---
 
